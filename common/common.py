@@ -8,6 +8,14 @@ class BusConfig:
     ADDRESS = ('127.0.0.1', PORT)
 
 
+class AutoNumber(Enum):
+    def __new__(cls):
+        value = len(cls.__members__)  # note no + 1
+        obj = object.__new__(cls)
+        obj._value_ = value
+        return obj
+
+
 class Priority(Enum):
     HIGH = 0
     NORMAL = 1
@@ -15,20 +23,24 @@ class Priority(Enum):
     DATA_STREAM = 3
 
 
-class FrameType(Enum):
-    NONE = 0
+class FrameType(AutoNumber):
+    NONE = ()
 
-    BUTTON_STATE = 1
-    ACTIVITY_LED_STATE = 2
-    DISTANCE = 3
+    BUTTON_STATE = ()
+    ACTIVITY_LED_STATE = ()
+    DISTANCE = ()
+    DISPLAY_FILLED_RECTANGLE = ()
 
-    EXTERNAL = 4
-    ALL = 5
-    COUNT = 6
+    EXTERNAL = ()
+    ALL = ()
+    COUNT = ()
 
 
 class Frame:
     def __init__(self):
+        # Set in child class
+        self.format = ''
+
         self.type = None
         self.data = bytearray(8)
         self.length = 0
@@ -43,4 +55,7 @@ class Frame:
         )
 
     def set_data(self, data):
-        self.data = struct.pack(data, 'HHL')
+        pass
+
+    def get_data(self):
+        return struct.unpack(self.format, self.data)
