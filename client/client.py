@@ -3,10 +3,14 @@ import select
 from common.common import Frame
 
 
+
 class Connection:
     def __init__(self):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
+
+    def wait_for_data(self):
+        return self.socket.recv_pyobj()
 
     def connect(self):
         self.socket.connect('tcp://127.0.0.1:5555')

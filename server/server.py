@@ -1,14 +1,15 @@
-import zmq
-from common.common import Frame
+from multiprocessing.managers import BaseManager
+from queue import Queue
 
 
-context = zmq.Context()
-socket = context.socket(zmq.REP)
-socket.bind('tcp://127.0.0.1:5555')
+class QueueManager(BaseManager):
+    pass
 
-while True:
-    msg = socket.recv()
-    print(msg)
-    frame = Frame()
-    frame.length = 2
-    socket.send_pyobj(frame)
+
+queue = Queue()
+
+QueueManager.register('get_queue', callable=lambda: queue)
+
+manager = QueueManager(address=('', 5000), authkey=b'r2d2')
+server = manager.get_server()
+server.serve_forever()
