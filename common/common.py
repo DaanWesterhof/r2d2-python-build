@@ -2,6 +2,12 @@ import struct
 from enum import Enum
 
 
+class BusConfig:
+    AUTH_KEY = b'r2d2'
+    PORT = 5000
+    ADDRESS = ('127.0.0.1', PORT)
+
+
 class Priority(Enum):
     HIGH = 0
     NORMAL = 1

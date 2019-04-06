@@ -1,5 +1,5 @@
 from client.comm import Comm
-from common.common import FrameType, Frame
+from common.common import FrameType
 
 
 class Module:

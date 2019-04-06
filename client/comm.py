@@ -1,16 +1,31 @@
-from common.common import Frame, FrameType, Priority
-from common.channel import Channel
+from common.common import Frame, FrameType, Priority, BusConfig
 from queue import Queue
 import threading
+
+from multiprocessing.managers import BaseManager
+
+
+class QueueManager(BaseManager):
+    pass
+
+
+QueueManager.register('rx_queue')
+QueueManager.register('tx_queue')
 
 
 class Comm:
     def __init__(self):
-        self.channel = Channel()
+        self.manager = QueueManager(address=BusConfig.ADDRESS, authkey=BusConfig.AUTH_KEY)
+        self.manager.connect()
+
+        # Queues that refer to the bus process
+        self.rx_queue = self.manager.rx_queue()
+        self.tx_queue = self.manager.tx_queue()
+        self.last_timestamp = 0
 
         self.listen_for = []
         self.accepts_all = False
-        self.rx_queue = Queue()
+        self.received = Queue()
 
         # Start the worker thread for the
         # connection.
@@ -28,16 +43,15 @@ class Comm:
 
         print("Starting connection worker...")
 
-        self.channel = Channel()
-        self.channel.connect()
-
-        print("Tx channel connected. Waiting for data...")
-
         while True:
-            self.channel.work()
+            for frame in self.rx_queue._getvalue():
+                if frame[0] <= self.last_timestamp:
+                    continue
 
-            for frame in self.channel.get_received():
-                self.rx_queue.put(frame)
+                self.last_timestamp = frame[0]
+
+                # TODO: check if we actually accepts this packet type
+                self.received.put(frame)
 
     def _safely_push_frame(self, frame: Frame):
         """
@@ -49,7 +63,7 @@ class Comm:
         :return:
         """
 
-        self.channel.queue_for_sending(frame)
+        self.tx_queue.append(frame)
 
     def listen_for(self, listen_for: list):
         """
@@ -104,7 +118,7 @@ class Comm:
         frame.type = type
 
         # TODO: this is a temporary implementation
-        #frame.set_data(data)
+        # frame.set_data(data)
         frame.request = False
         frame.priority = prio
 
@@ -118,7 +132,7 @@ class Comm:
         :return:
         """
 
-        return not self.rx_queue.empty()
+        return not self.received.empty()
 
     def get_data(self):
         """
@@ -130,6 +144,6 @@ class Comm:
         :return:
         """
 
-        item = self.rx_queue.get(block=True, timeout=None)
-        self.rx_queue.task_done()
+        item = self.received.get()
+        self.received.task_done()
         return item
