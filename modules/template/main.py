@@ -1,4 +1,4 @@
-from module.led import Module
+from modules.template.module.led import Module
 from time import sleep
 
 

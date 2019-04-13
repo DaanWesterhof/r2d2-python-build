@@ -67,7 +67,7 @@ class Comm:
 
     def listen_for(self, listen_for: list):
         """
-        Specify what frame types this module
+        Specify what frame types this modules
         should receive from the bus.
 
         :param listen_for:
@@ -80,7 +80,7 @@ class Comm:
 
     def accepts_frame(self, type: FrameType):
         """
-        Does this module accept the given
+        Does this modules accept the given
         frame type?
 
         :param type:
