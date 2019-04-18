@@ -1,4 +1,5 @@
-from common.common import Frame, FrameType, Priority, BusConfig
+from common.common import Frame, Priority, BusConfig
+from common.frame_enum import FrameType
 from queue import Queue
 import threading
 
