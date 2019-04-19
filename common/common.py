@@ -23,19 +23,6 @@ class Priority(Enum):
     DATA_STREAM = 3
 
 
-class FrameType(AutoNumber):
-    NONE = ()
-
-    BUTTON_STATE = ()
-    ACTIVITY_LED_STATE = ()
-    DISTANCE = ()
-    DISPLAY_FILLED_RECTANGLE = ()
-
-    EXTERNAL = ()
-    ALL = ()
-    COUNT = ()
-
-
 class Frame:
     def __init__(self):
         # Set in child class
