@@ -1,5 +1,6 @@
 from modules.led_module.module.led import Module
 from time import sleep
+from sys import platform
 import signal
 
 should_stop = False
@@ -24,7 +25,9 @@ def stop(signal, frame):
 
 signal.signal(signal.SIGINT, stop)
 signal.signal(signal.SIGTERM, stop)
-signal.signal(signal.SIGQUIT, stop)
+
+if platform != "win32":
+    signal.signal(signal.SIGQUIT, stop)
 
 if __name__ == "__main__":
     main()

@@ -51,21 +51,21 @@ class Comm:
 
         while not self.should_stop:
             for frame in self.rx_queue._getvalue():
-                pid, timestamp = frame[0]
-
-                print(self.pid, self.last_timestamp, frame)
-
                 # If the PID equals this pid, we have sent this message
                 # If the timestamp is older than our last timestamp, we have already
                 # processed this message
-                if self.pid == pid or timestamp <= self.last_timestamp:
+                if self.pid == frame.pid or frame.timestamp <= self.last_timestamp:
                     continue
 
-                self.last_timestamp = timestamp
+                self.last_timestamp = frame.timestamp
+
+                # Frame is of the type "FrameWrapper" which has the
+                # actual "Frame" instance in the member frame.
+                frame = frame.frame
 
                 # TODO: check if we actually accepts this packet type
-                if self.accepts_frame(frame[1].type):
-                    self.received.put(frame[1])
+                if self.accepts_frame(frame.type):
+                    self.received.put(frame)
 
     def _push_frame(self, frame: Frame):
         """

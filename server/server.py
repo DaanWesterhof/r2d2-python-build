@@ -7,6 +7,7 @@ import os
 import threading
 import copy
 import signal
+from sys import platform
 
 
 class QueueManager(BaseManager):
@@ -63,7 +64,6 @@ class BusServer:
 
         for frame in to_send:
             # Distribute frame internally
-            frame = ((self.pid, time()), frame)
             self.rx_queue.append(frame)
 
             print(frame)  # 'send'
@@ -117,6 +117,8 @@ def stop(signal, frame):
 
 signal.signal(signal.SIGINT, stop)
 signal.signal(signal.SIGTERM, stop)
-signal.signal(signal.SIGQUIT, stop)
+
+if platform != "win32":
+    signal.signal(signal.SIGQUIT, stop)
 
 server.start()
