@@ -1,4 +1,4 @@
-from modules.template.module.mod import Module
+from modules.button_module.module.mod import Module
 from time import sleep
 import signal
 
