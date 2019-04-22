@@ -63,7 +63,6 @@ class Comm:
                 # actual "Frame" instance in the member frame.
                 frame = frame.frame
 
-                # TODO: check if we actually accepts this packet type
                 if self.accepts_frame(frame.type):
                     self.received.put(frame)
 
@@ -114,6 +113,7 @@ class Comm:
         :param prio:
         :return:
         """
+
         frame = Frame()
         frame.type = type
         frame.request = True
@@ -159,5 +159,10 @@ class Comm:
         return item
 
     def stop(self):
+        """
+        Stop the worker thread.
+        :return:
+
+        """
         self.should_stop = True
         self.channel_worker.join()

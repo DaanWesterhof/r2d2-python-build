@@ -5,20 +5,21 @@ from common.frame_enum import FrameType
 class Module:
     def __init__(self):
         self.comm = Comm()
-        self.comm.listen_for([FrameType.BUTTON_STATE])
+        self.comm.listen_for([FrameType.ACTIVITY_LED_STATE])
 
     def process(self):
         while self.comm.has_data():
             frame = self.comm.get_data()
-
-            print(frame)
 
             if frame.request:
                 continue
 
             values = frame.get_data()
 
-            print(values)
+            if values[0]:
+                print("The LED is ON")
+            else:
+                print("The LED is OFF")
 
     def stop(self):
         self.comm.stop()

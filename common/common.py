@@ -45,6 +45,9 @@ class Frame:
         pass
 
     def get_data(self):
+        if self.length == 0:
+            return None
+
         return struct.unpack(self.format, self.data)
 
 
