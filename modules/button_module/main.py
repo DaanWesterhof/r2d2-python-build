@@ -1,14 +1,20 @@
-from modules.template.module.mod import Module
+import signal
+from random import randint
 from time import sleep
 from sys import platform
-import signal
+from modules.button_module.module.mod import Module
 
 should_stop = False
 
 
+class TestButton:
+    def read(self):
+        return randint(0, 1) == 1
+
+
 def main():
     print("Starting application...")
-    module = Module()
+    module = Module(TestButton())
     print("Module created...")
 
     while not should_stop:

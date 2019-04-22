@@ -2,9 +2,12 @@ from common.common import BusConfig
 from time import time, sleep
 from multiprocessing.managers import BaseManager
 from multiprocessing import Lock
+from common.frames import FrameButtonState
+import os
 import threading
 import copy
 import signal
+from sys import platform
 
 
 class QueueManager(BaseManager):
@@ -22,6 +25,7 @@ class BusServer:
         self.manager = None
         self.manager_thread = threading.Thread(target=self._manager)
         self.server = None
+        self.pid = os.getpid()
 
     def _manager(self):
         """
@@ -59,14 +63,20 @@ class BusServer:
         self.processing_lock.release()
 
         for frame in to_send:
+            # Distribute frame internally
+            self.rx_queue.append(frame)
+
             print(frame)  # 'send'
+            print()
 
     def _process_rx(self):
         self.processing_lock.acquire()
 
         if len(self.rx_queue) <= 32:
-            frame = (time(), 123)
-            self.rx_queue.append(frame)
+            pass
+            # TODO: socket
+            #frame = ((self.pid, time()), FrameButtonState())
+            #self.rx_queue.append(frame)
         else:
             self.rx_queue.pop(0)
 
@@ -107,6 +117,8 @@ def stop(signal, frame):
 
 signal.signal(signal.SIGINT, stop)
 signal.signal(signal.SIGTERM, stop)
-signal.signal(signal.SIGQUIT, stop)
+
+if platform != "win32":
+    signal.signal(signal.SIGQUIT, stop)
 
 server.start()

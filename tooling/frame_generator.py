@@ -42,10 +42,10 @@ def parse_frames(input):
     # for result in results:
     #   print(result)
 
+
 def parse_frame_enum(input):
     match = EnumRegEx.findall(input)[0]
-    #print(matches)
-
+    # print(matches)
 
     lines = match.split('\n')
     items = []
@@ -60,7 +60,7 @@ def parse_frame_enum(input):
         if line.endswith(';'):
             line = line[:-1]
         items.append(line.strip())
-#    print(results)
+    #    print(results)
     return items
 
     # for result in results:
@@ -106,6 +106,42 @@ def generate_frame_class(frames):
         'void *': 'P'
     }
 
+    typeSizes = {
+        'char': 1,
+        'int8_t': 1,
+        'signed char': 1,
+        'unsigned char': 1,
+        'uint8_t': 1,
+        '_Bool': 1,
+        'bool': 1,
+        'short': 2,
+        'int16_t': 2,
+        'unsigned short': 2,
+        'uint16_t': 2,
+        'int': 4,
+        'int32_t': 4,
+        'unsigned int': 4,
+        'uint32_t': 4,
+
+        # Yes, 4!
+        # GCC 8.2 ARM has sizeof(long) == 4, sizeof(long long) == 8
+        'long': 4,
+        'int64_t': 4,
+        'unsigned long': 4,
+        'uint64_t': 8,
+        'long long': 8,
+        'unsigned long long': 8,
+        'ssize_t': 4,
+        'size_t': 4,
+        'float': 4,
+        'double': 8,
+
+        # Note: arrays need other exceptions
+        'char[]': 4,
+        'void*': 4,
+        'void *': 4
+    }
+
     # For each frame int the file
     for frame in frames:
 
@@ -124,10 +160,14 @@ def generate_frame_class(frames):
         # the format of the 'struct' Python 3.7 package
         frameFormat = ''
 
+        # The length of the struct in bytes
+        length = 0
+
         # A list of arguments for the 'set_data' method
         argumentList = []
         for type in frame[1]:
             split = type.split(' ')
+            length += typeSizes[split[0]]
             frameFormat += typeFormats[split[0]]
             argumentList.append(split[1])
 
@@ -135,11 +175,13 @@ def generate_frame_class(frames):
         output += "\tdef __init__(self):\n"
         output += "\t\tsuper(" + ''.join(classNameWords) + ", self).__init__()\n"
         output += "\t\tself.type = FrameType." + frameType + '\n'
-        output += "\t\tself.format = '" + frameFormat + "'\n\n"
+        output += "\t\tself.format = '" + frameFormat + "'\n"
+        output += "\t\tself.length = " + str(length) + "\n\n"
         output += "\tdef set_data(self, " + ', '.join(argumentList) + '):\n'
         output += "\t\tself.data = struct.pack(self.format, " + ', '.join(argumentList) + ')\n'
-        output += "\n"
+        output += "\n\n"
     return output
+
 
 def generate_frame_enum(frames):
     # Write the file start
@@ -163,4 +205,3 @@ def write_file(loc, filename, ext, content):
 
 write_file("common", "frames", ".py", generate_frame_class(parse_frames(get_git(url, splitString)[1])))
 write_file("common", "frame_enum", ".py", generate_frame_enum(parse_frame_enum(get_git(url, splitString)[0])))
-

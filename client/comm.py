@@ -1,7 +1,9 @@
-from common.common import Frame, Priority, BusConfig
+from common.common import Frame, Priority, BusConfig, FrameWrapper
 from common.frame_enum import FrameType
 from queue import Queue
+from time import time
 import threading
+import os
 
 from multiprocessing.managers import BaseManager
 
@@ -24,14 +26,17 @@ class Comm:
         self.tx_queue = self.manager.tx_queue()
         self.last_timestamp = 0
 
-        self.listen_for = []
+        self.comm_listen_for = []
         self.accepts_all = False
         self.received = Queue()
 
         # Start the worker thread for the
         # connection.
+        self.should_stop = False
         self.channel_worker = threading.Thread(target=self._work_channel)
         self.channel_worker.start()
+
+        self.pid = os.getpid()
 
     def _work_channel(self):
         """
@@ -44,17 +49,24 @@ class Comm:
 
         print("Starting connection worker...")
 
-        while True:
+        while not self.should_stop:
             for frame in self.rx_queue._getvalue():
-                if frame[0] <= self.last_timestamp:
+                # If the PID equals this pid, we have sent this message
+                # If the timestamp is older than our last timestamp, we have already
+                # processed this message
+                if self.pid == frame.pid or frame.timestamp <= self.last_timestamp:
                     continue
 
-                self.last_timestamp = frame[0]
+                self.last_timestamp = frame.timestamp
 
-                # TODO: check if we actually accepts this packet type
-                self.received.put(frame)
+                # Frame is of the type "FrameWrapper" which has the
+                # actual "Frame" instance in the member frame.
+                frame = frame.frame
 
-    def _safely_push_frame(self, frame: Frame):
+                if self.accepts_frame(frame.type):
+                    self.received.put(frame)
+
+    def _push_frame(self, frame: Frame):
         """
         Push the frame on to the queue, if there is
         no space available on the queue this call will
@@ -64,9 +76,11 @@ class Comm:
         :return:
         """
 
-        self.tx_queue.append(frame)
+        self.tx_queue.append(
+            FrameWrapper(frame, self.pid, time())
+        )
 
-    def listen_for(self, listen_for: list):
+    def listen_for(self, comm_listen_for: list):
         """
         Specify what frame types this modules
         should receive from the bus.
@@ -74,9 +88,9 @@ class Comm:
         :param listen_for:
         :return:
         """
-        self.listen_for = listen_for
+        self.comm_listen_for = comm_listen_for
 
-        if FrameType.ALL in listen_for:
+        if FrameType.ALL in comm_listen_for:
             self.accepts_all = True
 
     def accepts_frame(self, type: FrameType):
@@ -89,7 +103,7 @@ class Comm:
         """
         if self.accepts_all:
             return True
-        return type in self.listen_for
+        return type in self.comm_listen_for
 
     def request(self, type, prio: Priority = Priority.NORMAL):
         """
@@ -99,31 +113,26 @@ class Comm:
         :param prio:
         :return:
         """
+
         frame = Frame()
         frame.type = type
         frame.request = True
         frame.priority = prio
 
-        self._safely_push_frame(frame)
+        self._push_frame(frame)
 
-    def send(self, type, data, prio: Priority = Priority.NORMAL):
+    def send(self, frame, prio: Priority = Priority.NORMAL):
         """
         Put a frame on the bus.
 
         :param type:
         :param data:
         :param prio:
-        :return:
         """
-        frame = Frame()
-        frame.type = type
-
-        # TODO: this is a temporary implementation
-        # frame.set_data(data)
         frame.request = False
         frame.priority = prio
 
-        self._safely_push_frame(frame)
+        self._push_frame(frame)
 
     def has_data(self):
         """
@@ -142,9 +151,18 @@ class Comm:
 
         Check if there is data available for processing
         first with has_data.
-        :return:
+        :return: common.Frame
         """
 
         item = self.received.get()
         self.received.task_done()
         return item
+
+    def stop(self):
+        """
+        Stop the worker thread.
+        :return:
+
+        """
+        self.should_stop = True
+        self.channel_worker.join()

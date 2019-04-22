@@ -29,7 +29,7 @@ class Frame:
         self.format = ''
 
         self.type = None
-        self.data = bytearray(8)
+        self.data = None
         self.length = 0
         self.request = False
         self.priority = Priority.NORMAL
@@ -45,4 +45,14 @@ class Frame:
         pass
 
     def get_data(self):
+        if self.length == 0:
+            return None
+
         return struct.unpack(self.format, self.data)
+
+
+class FrameWrapper:
+    def __init__(self, frame, pid, timestamp):
+        self.frame = frame
+        self.pid = pid
+        self.timestamp = timestamp

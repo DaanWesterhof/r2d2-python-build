@@ -1,4 +1,4 @@
-from modules.template.module.mod import Module
+from modules.led_module.module.mod import Module
 from time import sleep
 from sys import platform
 import signal
