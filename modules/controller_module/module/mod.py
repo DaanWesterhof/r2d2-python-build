@@ -1,11 +1,11 @@
-from client.comm import Comm
+from client.comm import BaseComm
 from common.frame_enum import FrameType
 from common.frames import FrameActivityLedState
 
 
 class Module:
-    def __init__(self):
-        self.comm = Comm()
+    def __init__(self, comm: BaseComm):
+        self.comm = comm
         self.comm.listen_for([FrameType.BUTTON_STATE])
 
     def process(self):
