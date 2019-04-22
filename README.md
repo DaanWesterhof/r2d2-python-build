@@ -187,14 +187,14 @@ A script is used to parse the frame types from the C++ internal communication bu
 
 ## About the system
 ### Requirements
-Currently, the system requires port 5000 to be free upon server startup. Modules will try to connect to this port.
+Currently, the system requires port 5000 to be free upon manager startup. Modules will try to connect to this port.
 This might be configurable in the future.
 
 ### Multiplatform
 The system supports Linux and Windows. While Python itself is multiplatform, quite a bit of differences exist when, for example, using network sockets. It is expected of modules that they are also compatible with Linux and Windows.
 
 ### Local development
-The `server` can be started in the background and modules can connect to it, provided the port is free on server start.
+The `manager` can be started in the background and modules can connect to it, provided the port is free on manager start.
 
 ## Process based 
 
@@ -204,8 +204,8 @@ This high level image should give an overview of how the system works. The squar
 [![Pythonbus-1.png](https://i.postimg.cc/tCb8F6MX/Pythonbus-1.png)](https://postimg.cc/kDjjm2CZ)
 
 ### Modules and processes
-Every module should run in its owm process. Once created, the `Comm` class can be used to connect to the server process that should be already running.
-In practice, this means your module is started by simply doing `python3 module/main.py` while the server is running in the background.
+Every module should run in its owm process. Once created, the `Comm` class can be used to connect to the manager process that should be already running.
+In practice, this means your module is started by simply doing `python3 module/main.py` while the manager is running in the background.
 
 ### Processes vs threads (in Python)
 In Python, there is something called the Global Interpreter Lock, or GIL.
@@ -213,16 +213,16 @@ This system regulates access to the Python interpreter; the interpreter can only
 A consequence of this is that a CPU-bound thread can actually occupy the interpreter fully, defeating one of the advantages of multithreading.
 
 The way around this in Python (and in this library) is using multiple processes. Communication works by interprocess communication and synchronization.
-This system has a big advantage: modules (and the server) are completely unrelated from each other. If a module were to crash, other modules are not affected.
+This system has a big advantage: modules (and the manager) are completely unrelated from each other. If a module were to crash, other modules are not affected.
 
 A downside is that interprocess communication is tricky and can be quite slow (relatively) due to synchronization.
  
 
 ## Components
-### Server
-`server.py` in the `server` folder is a file that should be started in a separate process.
+### Manager
+`manager.py` in the `manager` folder is a file that should be started in a separate process.
 When actually deployed, this file should run in the background as a service.
-Modules can dynamically connect or disconnect from the server application at will, providing a lot of flexibility.
+Modules can dynamically connect or disconnect from the manager application at will, providing a lot of flexibility.
 
 ### Module
 Each module runs in its owm process, i.e. it is started separately with `python3 filename.py`.

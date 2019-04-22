@@ -16,7 +16,7 @@ class QueueManager(BaseManager):
 PACKET_QUEUE_LENGTH = 64
 
 
-class BusServer:
+class BusManager:
     def __init__(self):
         self.processing_lock = Lock()
         self.should_stop = False
@@ -110,11 +110,11 @@ class BusServer:
         self.manager_thread.join()
 
 
-server = BusServer()
+bus_manager = BusManager()
 
 
 def stop(signal, frame):
-    server.stop()
+    bus_manager.stop()
 
 
 signal.signal(signal.SIGINT, stop)
@@ -123,4 +123,4 @@ signal.signal(signal.SIGTERM, stop)
 if platform != "win32":
     signal.signal(signal.SIGQUIT, stop)
 
-server.start()
+bus_manager.start()
