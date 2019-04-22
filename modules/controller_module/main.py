@@ -1,19 +1,21 @@
-from modules.controller_module.module.mod import Module
 from time import sleep
 from sys import platform
 import signal
+
+from client.comm import Comm
+from modules.controller_module.module.mod import Module
 
 should_stop = False
 
 
 def main():
-    print("Starting application...")
-    module = Module()
+    print("Starting application...\n")
+    module = Module(Comm())
     print("Module created...")
 
     while not should_stop:
         module.process()
-        sleep(0.1)
+        sleep(0.05)
 
     module.stop()
 

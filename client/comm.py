@@ -1,11 +1,38 @@
-from common.common import Frame, Priority, BusConfig, FrameWrapper
-from common.frame_enum import FrameType
 from queue import Queue
 from time import time
 import threading
 import os
-
 from multiprocessing.managers import BaseManager
+
+from common.common import Frame, Priority, BusConfig, FrameWrapper
+from common.frame_enum import FrameType
+
+
+class BaseComm:
+    """
+    Interface for communication classes.
+    """
+
+    def listen_for(self, comm_listen_for: list) -> None:
+        raise NotImplementedError('Please implement listen_for')
+
+    def accepts_frame(self, type: FrameType) -> bool:
+        raise NotImplementedError('Please implement accepts_frame')
+
+    def request(self, type, prio: Priority = Priority.NORMAL) -> None:
+        raise NotImplementedError('Please implement request')
+
+    def send(self, frame, prio: Priority = Priority.NORMAL) -> None:
+        raise NotImplementedError('Please implement send')
+
+    def has_data(self) -> bool:
+        raise NotImplementedError('Please implement has_data')
+
+    def get_data(self) -> Frame:
+        raise NotImplementedError('Please implement get_data')
+
+    def stop(self) -> None:
+        pass
 
 
 class QueueManager(BaseManager):
@@ -16,7 +43,7 @@ QueueManager.register('rx_queue')
 QueueManager.register('tx_queue')
 
 
-class Comm:
+class Comm(BaseComm):
     def __init__(self):
         self.manager = QueueManager(address=BusConfig.ADDRESS, authkey=BusConfig.AUTH_KEY)
         self.manager.connect()
@@ -80,12 +107,12 @@ class Comm:
             FrameWrapper(frame, self.pid, time())
         )
 
-    def listen_for(self, comm_listen_for: list):
+    def listen_for(self, comm_listen_for: list) -> None:
         """
         Specify what frame types this modules
         should receive from the bus.
 
-        :param listen_for:
+        :param comm_listen_for:
         :return:
         """
         self.comm_listen_for = comm_listen_for
@@ -93,7 +120,7 @@ class Comm:
         if FrameType.ALL in comm_listen_for:
             self.accepts_all = True
 
-    def accepts_frame(self, type: FrameType):
+    def accepts_frame(self, type: FrameType) -> bool:
         """
         Does this modules accept the given
         frame type?
@@ -105,7 +132,7 @@ class Comm:
             return True
         return type in self.comm_listen_for
 
-    def request(self, type, prio: Priority = Priority.NORMAL):
+    def request(self, type, prio: Priority = Priority.NORMAL) -> None:
         """
         Request data from the bus
 
@@ -121,7 +148,7 @@ class Comm:
 
         self._push_frame(frame)
 
-    def send(self, frame, prio: Priority = Priority.NORMAL):
+    def send(self, frame, prio: Priority = Priority.NORMAL) -> None:
         """
         Put a frame on the bus.
 
@@ -134,7 +161,7 @@ class Comm:
 
         self._push_frame(frame)
 
-    def has_data(self):
+    def has_data(self) -> bool:
         """
         Whether there is data available for
         processing for this instance.
@@ -144,7 +171,7 @@ class Comm:
 
         return not self.received.empty()
 
-    def get_data(self):
+    def get_data(self) -> Frame:
         """
         Non-blocking, will throw the Empty
         exception if no data is available.
@@ -158,7 +185,7 @@ class Comm:
         self.received.task_done()
         return item
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the worker thread.
         :return:

@@ -1,8 +1,7 @@
 from common.common import BusConfig
-from time import time, sleep
+from time import sleep
 from multiprocessing.managers import BaseManager
 from multiprocessing import Lock
-from common.frames import FrameButtonState
 import os
 import threading
 import copy
@@ -14,7 +13,10 @@ class QueueManager(BaseManager):
     pass
 
 
-class BusServer:
+PACKET_QUEUE_LENGTH = 64
+
+
+class BusManager:
     def __init__(self):
         self.processing_lock = Lock()
         self.should_stop = False
@@ -66,13 +68,13 @@ class BusServer:
             # Distribute frame internally
             self.rx_queue.append(frame)
 
-            print(frame)  # 'send'
+            #print(frame)  # 'send'
             print()
 
     def _process_rx(self):
         self.processing_lock.acquire()
 
-        if len(self.rx_queue) <= 32:
+        if len(self.rx_queue) <= PACKET_QUEUE_LENGTH:
             pass
             # TODO: socket
             #frame = ((self.pid, time()), FrameButtonState())
@@ -85,9 +87,9 @@ class BusServer:
     def start(self):
         print("Starting...")
 
-        # self._manager()
         self.manager_thread.start()
 
+        # Wait for the manager to start up...
         sleep(0.5)
 
         print("Starting consumer...")
@@ -108,11 +110,11 @@ class BusServer:
         self.manager_thread.join()
 
 
-server = BusServer()
+bus_manager = BusManager()
 
 
 def stop(signal, frame):
-    server.stop()
+    bus_manager.stop()
 
 
 signal.signal(signal.SIGINT, stop)
@@ -121,4 +123,4 @@ signal.signal(signal.SIGTERM, stop)
 if platform != "win32":
     signal.signal(signal.SIGQUIT, stop)
 
-server.start()
+bus_manager.start()

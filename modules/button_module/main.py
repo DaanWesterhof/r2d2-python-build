@@ -1,7 +1,9 @@
-import signal
-from random import randint
 from time import sleep
 from sys import platform
+from random import randint
+import signal
+
+from client.comm import Comm
 from modules.button_module.module.mod import Module
 
 should_stop = False
@@ -13,8 +15,8 @@ class TestButton:
 
 
 def main():
-    print("Starting application...")
-    module = Module(TestButton())
+    print("Starting application...\n")
+    module = Module(Comm(), TestButton())
     print("Module created...")
 
     while not should_stop:
