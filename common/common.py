@@ -132,13 +132,6 @@ class Frame:
 
         return key in self.MEMBERS
 
-    def __str__(self):
-        return "Type: {}\nData: bytes\nLength: {}\nRequest: {}".format(
-            self.type,
-            self.length,
-            self.request
-        )
-
     def set_data(self, data):
         pass
 
