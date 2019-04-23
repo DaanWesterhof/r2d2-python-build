@@ -14,12 +14,10 @@ class Module:
             if frame.request:
                 continue
 
-            values = frame.get_data()
-
-            if values[0]:
-                print("The LED is ON")
+            if frame["state"]:
+               print("The LED is ON")
             else:
-                print("The LED is OFF")
+               print("The LED is OFF")
 
     def stop(self):
         self.comm.stop()

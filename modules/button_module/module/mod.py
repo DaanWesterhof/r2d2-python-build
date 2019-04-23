@@ -17,7 +17,7 @@ class Module:
                 continue
 
             frame = FrameButtonState()
-            frame.set_data(self.button.read())
+            frame["pressed"] = self.button.read()
             self.comm.send(frame)
 
     def stop(self):
