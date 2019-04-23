@@ -144,7 +144,7 @@ class Frame:
     def __str__(self):
         output = self.__class__.__name__ + '\n'
         for member in self.MEMBERS:
-            output += '\t{}: {}'.format(member, self[member])
+            output += '\t{}: {}'.format(member, self[member]) + '\n'
 
         return output
 
