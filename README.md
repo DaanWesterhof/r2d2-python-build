@@ -2,6 +2,11 @@
 
 This document is WIP!
 
+## FAQ
+### When running a `main.py`, I get `No module named 'Client'`
+Set the `PYTHONPATH` environment variable to the root directory of `r2d2-python-build`.
+Use the entire path; things like `~` won't work!
+
 ## Introduction
 ### What makes a module?
 A basic module consists of two files:
