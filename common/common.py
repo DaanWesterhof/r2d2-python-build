@@ -1,7 +1,6 @@
 import struct
 from enum import Enum
 
-
 class BusConfig:
     AUTH_KEY = b'r2d2'
     PORT = 5000
@@ -17,6 +16,9 @@ class AutoNumber(Enum):
 
 
 class Priority(Enum):
+    """
+    Defines the priority of a package on the bus.
+    """
     HIGH = 0
     NORMAL = 1
     LOW = 2
@@ -65,7 +67,8 @@ class Frame:
         self.request = False
         self.priority = Priority.NORMAL
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Returns the length of the members"""
         return len(self.MEMBERS)
 
     def __length_hint__(self):
@@ -125,6 +128,7 @@ class Frame:
         """
         Check if this frame type has a member
         by the given name.
+        Enables the in operator with if statements
 
         :param key:
         :return:
@@ -149,7 +153,7 @@ class Frame:
         return output
 
 
-class FrameWrapper:
+class FrameWrapper:    
     def __init__(self, frame, pid, timestamp):
         self.frame = frame
         self.pid = pid
