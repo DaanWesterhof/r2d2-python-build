@@ -1,5 +1,4 @@
 venv/
-.idea/
 
 
 # Created by https://www.gitignore.io/api/vim,code,emacs,linux,nanoc,macos,python,windows,pycharm,pycharm+all,pycharm+iml,notepadpp
@@ -7,10 +6,6 @@ venv/
 
 ### Code ###
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
