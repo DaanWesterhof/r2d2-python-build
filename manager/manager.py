@@ -10,6 +10,10 @@ from sys import platform
 
 
 class QueueManager(BaseManager):
+    """
+    Alias for the object pool for sharing the inter process
+    objects
+    """
     pass
 
 
@@ -17,6 +21,10 @@ PACKET_QUEUE_LENGTH = 64
 
 
 class BusManager:
+    """
+    The manager of the bus.
+    Puts data on the bus and returns it from the bus.
+    """
     def __init__(self):
         self.processing_lock = Lock()
         self.should_stop = False
@@ -31,16 +39,17 @@ class BusManager:
 
     def _manager(self):
         """
+        Bootstrap code for the manager.
         Called from a separate thread.
 
         :return:
         """
 
         print("Starting queue manager...")
-
+        # Register the queue for receiving frames from modules
         QueueManager.register('rx_queue', callable=lambda: self.rx_queue)
+        # Register the queue for sending frames to modules
         QueueManager.register('tx_queue', callable=lambda: self.tx_queue)
-
         self.manager = QueueManager(address=('', BusConfig.PORT), authkey=BusConfig.AUTH_KEY)
         self.server = self.manager.get_server()
 
@@ -56,7 +65,7 @@ class BusManager:
 
         :return:
         """
-
+        # Get a lock (mutex) on the transmitting queue
         self.processing_lock.acquire()
 
         to_send = copy.deepcopy(self.tx_queue)
@@ -85,6 +94,9 @@ class BusManager:
         self.processing_lock.release()
 
     def start(self):
+        """
+        starts the manager, and the bus.
+        """
         print("Starting...")
 
         self.manager_thread.start()
@@ -105,15 +117,24 @@ class BusManager:
             sleep(0.01)
 
     def stop(self):
+        """
+        Stops the manager thread
+
+        :return:
+        """
         self.should_stop = True
         self.server.stop_event.set()
         self.manager_thread.join()
-
 
 bus_manager = BusManager()
 
 
 def stop(signal, frame):
+    """
+    Stops the bus manager.
+
+    :return:
+    """
     bus_manager.stop()
 
 
