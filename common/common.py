@@ -64,6 +64,7 @@ class Frame:
         self.length = 0
         self.request = False
         self.priority = Priority.NORMAL
+        self.comment = None
 
     def __len__(self):
         return len(self.MEMBERS)
@@ -140,6 +141,9 @@ class Frame:
             return None
 
         return struct.unpack(self.format, self.data)
+
+    def get_comment(self):
+        return self.comment
 
     def __str__(self):
         output = self.__class__.__name__ + '\n'
