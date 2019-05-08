@@ -3,7 +3,8 @@ import urllib.request
 import datetime
 from pathlib import Path
 
-CLASS_REGEX = re.compile('(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+FRAME_REGEX = re.compile('(?:\/\*\* @cond CLI COMMAND @endcond(.*?)\*\/.*?)?(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+COMMENT_REGEX = re.compile('\*(.*?)$', re.MULTILINE)
 ENUM_REGEX = re.compile('frame_id.?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
 SOURCE_URL = "https://raw.githubusercontent.com/R2D2-2019/internal_communication/master/code/headers/frame_types.hpp"
@@ -122,10 +123,11 @@ def get_git(url, splitString):
 
 
 def parse_frames(input):
-    matches = CLASS_REGEX.findall(input)
+    matches = FRAME_REGEX.findall(input)
     results = []
     for idx, match in enumerate(matches):
-        lines = match[1].split('\n')
+        match = [[line.strip() for line in COMMENT_REGEX.findall(match[0])]] + list(match[1:])
+        lines = match[2].split('\n')
         items = []
         for line in lines:
             line = line.strip()
@@ -139,7 +141,7 @@ def parse_frames(input):
                 line = line[:-1]
             items.append(line.strip())
 
-        results.append((match[0].strip(), items))
+        results.append((match[1].strip(), items, match[0]))
     return results
 
     # for result in results:
@@ -216,7 +218,15 @@ def generate_frame_class(frames):
         output += "\t\tsuper(" + ''.join(classNameWords) + ", self).__init__()\n"
         output += "\t\tself.type = FrameType." + frameType + '\n'
         output += "\t\tself.format = '" + frameFormat + "'\n"
-        output += "\t\tself.length = " + str(length) + "\n\n"
+        output += "\t\tself.length = " + str(length) + '\n'
+
+        if frame[2]:
+            output += "\t\tself.comment = \"\"\""
+            for line in frame[2]:
+                output += line + '\\n'
+            output += "\"\"\"\n"
+
+        output += '\n'
         output += "\tdef set_data(self, " + ', '.join(typedList) + '):\n'
         output += "\t\tself.data = struct.pack(self.format, " + ', '.join(nameList) + ')\n'
         output += "\n\n"
