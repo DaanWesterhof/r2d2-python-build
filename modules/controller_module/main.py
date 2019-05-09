@@ -21,6 +21,9 @@ def main():
 
 
 def stop(signal, frame):
+    """
+    
+    """
     global should_stop
     should_stop = True
 

@@ -9,6 +9,7 @@ should_stop = False
 
 
 def main():
+
     print("Starting application...\n")
     module = Module(Comm())
     print("Module created...")

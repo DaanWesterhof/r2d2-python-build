@@ -10,11 +10,25 @@ should_stop = False
 
 
 class TestButton:
+    """
+    Button-dummy class that returns random True and False values on read.
+    """
     def read(self):
+        """
+        Reads the button value. In this case the value is random.
+
+        :return True: Button is pressed
+        :return False: Button is unpressed
+        """
         return randint(0, 1) == 1
 
 
 def main():
+    """
+    Main function that starts the module
+    
+    :return:
+    """
     print("Starting application...\n")
     module = Module(Comm(), TestButton())
     print("Module created...")
@@ -27,6 +41,9 @@ def main():
 
 
 def stop(signal, frame):
+    """
+    Stops the process and  stops the listening to incomming frames
+    """
     global should_stop
     should_stop = True
 
