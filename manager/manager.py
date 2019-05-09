@@ -1,3 +1,10 @@
+"""
+the Bus manager is responsible for copying can-bus data frames over to the python bus
+
+This file should be Executed in the background as a service.
+Other modules can dynamically connect or disconnect from the manager application at will, providing a lot of flexibility.
+"""
+
 from common.common import BusConfig
 from time import sleep
 from multiprocessing.managers import BaseManager
