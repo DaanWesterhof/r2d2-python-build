@@ -27,13 +27,18 @@ class BusManager:
     """
     def __init__(self):
         self.processing_lock = Lock()
+        """ """
         self.should_stop = False
-
+        """Contains if the bus must be ended."""
         self.rx_queue = []
+        """Receiving queue"""
         self.tx_queue = []
+        """Transmitting queue"""
 
         self.manager = None
+        """Contains the object pool/manager"""
         self.manager_thread = threading.Thread(target=self._manager)
+        """The thread where the manager runs in."""
         self.server = None
         self.pid = os.getpid()
 
@@ -81,6 +86,11 @@ class BusManager:
             print()
 
     def _process_rx(self):
+        """
+        Function processes an incomming frame.
+        The function locks the queue and copies the frame to an internal queue and after it releases the queue.
+        :return:
+        """
         self.processing_lock.acquire()
 
         if len(self.rx_queue) <= PACKET_QUEUE_LENGTH:
@@ -95,7 +105,9 @@ class BusManager:
 
     def start(self):
         """
-        starts the manager, and the bus.
+        Starts the manager and exposes a central bus.
+
+        :return:
         """
         print("Starting...")
 
