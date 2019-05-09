@@ -8,7 +8,6 @@ from modules.button_module.module.mod import Module
 
 should_stop = False
 
-
 class TestButton:
     def read(self):
         return randint(0, 1) == 1
