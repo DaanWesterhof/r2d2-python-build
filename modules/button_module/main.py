@@ -42,7 +42,7 @@ def main():
 
 def stop(signal, frame):
     """
-    Stops the process and  stops the listening to incomming frames
+    Stops the process and  stops the listening to incoming frames
     """
     global should_stop
     should_stop = True
