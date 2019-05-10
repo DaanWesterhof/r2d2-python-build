@@ -224,7 +224,7 @@ def generate_frame_class(frames):
             output += "\t\tself.comment = \""
             for line in frame[2]:
                 output += line + '\\n'
-            output += "\"n"
+            output += "\""
 
         output += '\n'
         output += "\tdef set_data(self, " + ', '.join(typedList) + '):\n'
