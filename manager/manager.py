@@ -26,12 +26,24 @@ class BusManager:
     Puts data on the bus and returns it from the bus.
     """
     def __init__(self):
+        """
+        Setup the manager
+        Initializes the RX and TX queue
+        Creates a place for the manager
+        Creates a manager thread
+        :return:
+        """
+
+
         self.processing_lock = Lock()
-        """ """
+        """ The lock on the queue, if locked no one can use the queue """
+
         self.should_stop = False
         """Contains if the bus must be ended."""
+
         self.rx_queue = []
         """Receiving queue"""
+
         self.tx_queue = []
         """Transmitting queue"""
 

@@ -22,7 +22,8 @@ def main():
 
 def stop(signal, frame):
     """
-    
+    Stops the process and  stops the listening to incoming frames
+    :return:
     """
     global should_stop
     should_stop = True
