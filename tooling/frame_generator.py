@@ -7,7 +7,7 @@ FRAME_REGEX = re.compile('(?:\/\*\* @cond CLI COMMAND @endcond(.*?)\*\/.*?)?(fra
 COMMENT_REGEX = re.compile('\*(.*?)$', re.MULTILINE)
 ENUM_REGEX = re.compile('frame_id.?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
-SOURCE_URL = "https://raw.githubusercontent.com/R2D2-2019/internal_communication/master/code/headers/frame_types.hpp"
+SOURCE_URL = "https://raw.githubusercontent.com/R2D2-2019/internal_communication/feature-cli-flag/code/headers/frame_types.hpp"
 SOURCE_ANCHOR = "/** #PythonAnchor# */"
 BASE_PATH = Path(__file__).parent.parent
 
@@ -221,10 +221,10 @@ def generate_frame_class(frames):
         output += "\t\tself.length = " + str(length) + '\n'
 
         if frame[2]:
-            output += "\t\tself.comment = \"\"\""
+            output += "\t\tself.comment = \""
             for line in frame[2]:
                 output += line + '\\n'
-            output += "\"\"\"\n"
+            output += "\"n"
 
         output += '\n'
         output += "\tdef set_data(self, " + ', '.join(typedList) + '):\n'
