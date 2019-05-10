@@ -7,7 +7,7 @@ FRAME_REGEX = re.compile('(?:\/\*\* @cond CLI COMMAND @endcond(.*?)\*\/.*?)?(fra
 COMMENT_REGEX = re.compile('\*(.*?)$', re.MULTILINE)
 ENUM_REGEX = re.compile('frame_id.?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
-SOURCE_URL = "https://raw.githubusercontent.com/R2D2-2019/internal_communication/feature-cli-flag/code/headers/frame_types.hpp"
+SOURCE_URL = "https://raw.githubusercontent.com/R2D2-2019/internal_communication/master/code/headers/frame_types.hpp"
 SOURCE_ANCHOR = "/** #PythonAnchor# */"
 BASE_PATH = Path(__file__).parent.parent
 
