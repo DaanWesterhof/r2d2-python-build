@@ -114,15 +114,15 @@ CORRESPONDING_TYPES = {
 }
 
 
-def get_git(url, splitString):
+def get_git(url, split_string: str):
     rawContents = urllib.request.urlopen(url).read()
     decodedContents = rawContents.decode("utf-8")
-    contents = decodedContents.split(splitString)
+    contents = decodedContents.split(split_string)
     return contents
 
 
-def parse_frames(input):
-    matches = CLASS_REGEX.findall(input)
+def parse_frames(input_string: str):
+    matches = CLASS_REGEX.findall(input_string)
     results = []
     for idx, match in enumerate(matches):
         lines = match[1].split('\n')
@@ -146,8 +146,8 @@ def parse_frames(input):
     #   print(result)
 
 
-def parse_frame_enum(input):
-    match = ENUM_REGEX.findall(input)[0]
+def parse_frame_enum(input_string: str):
+    match = ENUM_REGEX.findall(input_string)[0]
     # print(matches)
 
     lines = match.split('\n')

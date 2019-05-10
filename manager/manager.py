@@ -1,12 +1,12 @@
-from common.common import BusConfig
+from sys import platform
+import os
+import copy
+import threading
+import signal
 from time import sleep
 from multiprocessing.managers import BaseManager
 from multiprocessing import Lock
-import os
-import threading
-import copy
-import signal
-from sys import platform
+from common.common import BusConfig
 
 
 class QueueManager(BaseManager):
