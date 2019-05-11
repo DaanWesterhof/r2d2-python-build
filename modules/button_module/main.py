@@ -1,3 +1,5 @@
+"""this file executes the button_module program"""
+
 from time import sleep
 from sys import platform
 from random import randint
@@ -6,7 +8,7 @@ import signal
 from client.comm import Comm
 from modules.button_module.module.mod import Module
 
-should_stop = False
+SHOULD_STOP = False
 
 class TestButton:
     """
@@ -25,14 +27,14 @@ class TestButton:
 def main():
     """
     Main function that starts the module
-    
+
     :return:
     """
     print("Starting application...\n")
     module = Module(Comm(), TestButton())
     print("Module created...")
 
-    while not should_stop:
+    while not SHOULD_STOP:
         module.process()
         sleep(0.05)
 
@@ -43,8 +45,8 @@ def stop(signal, frame):
     """
     Stops the process and  stops the listening to incoming frames
     """
-    global should_stop
-    should_stop = True
+    global SHOULD_STOP
+    SHOULD_STOP = True
 
 
 signal.signal(signal.SIGINT, stop)
