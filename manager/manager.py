@@ -1,3 +1,10 @@
+#! python
+"""
+this program hosts the python internal bus.
+
+see client/comm.py for the interface
+"""
+
 from sys import platform
 import os
 import copy
@@ -49,8 +56,10 @@ class BusManager:
 
         self.manager = None
         """Contains the object pool/manager"""
+
         self.manager_thread = threading.Thread(target=self._manager)
         """The thread where the manager runs in."""
+
         self.server = None
         self.pid = os.getpid()
 
@@ -100,7 +109,10 @@ class BusManager:
     def _process_rx(self):
         """
         Function processes an incomming frame.
-        The function locks the queue and copies the frame to an internal queue and after it releases the queue.
+        The function locks the queue,
+        then it copies the frame to an internal queue.
+        after that it releases the queue.
+
         :return:
         """
         self.processing_lock.acquire()
