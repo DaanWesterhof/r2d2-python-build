@@ -1,13 +1,18 @@
+"""
+this module contains configuration and base Frame definitions
+"""
 import struct
 from enum import Enum
 
 class BusConfig:
+    "this class contains the configuration options for the bus"
     AUTH_KEY = b'r2d2'
     PORT = 5000
     ADDRESS = ('127.0.0.1', PORT)
 
 
 class AutoNumber(Enum):
+    """this enum class automatily generates """
     def __new__(cls):
         value = len(cls.__members__)  # note no + 1
         new_object = object.__new__(cls)
@@ -153,7 +158,7 @@ class Frame:
         return output
 
 
-class FrameWrapper:    
+class FrameWrapper:
     def __init__(self, frame, pid, timestamp):
         self.frame = frame
         self.pid = pid
