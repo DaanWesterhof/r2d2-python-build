@@ -4,7 +4,7 @@ import datetime
 from pathlib import Path
 
 CLASS_REGEX = re.compile('(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
-ENUM_REGEX = re.compile('frame_id.?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+ENUM_REGEX = re.compile('frame_id ?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
 SOURCE_URL = "https://raw.githubusercontent.com/R2D2-2019/internal_communication/master/code/headers/frame_types.hpp"
 SOURCE_ANCHOR = "/** #PythonAnchor# */"
@@ -159,8 +159,8 @@ def parse_frame_enum(input_string: str):
         if not line or line.startswith('//'):
             continue
 
-        # Remove trailing ;
-        if line.endswith(';'):
+        # Remove trailing ,
+        if line.endswith(','):
             line = line[:-1]
         items.append(line.strip())
     #    print(results)
@@ -231,8 +231,8 @@ def generate_frame_enum(frames):
 
     # For each frame in the file
     for frame in frames:
-        # Take each frame, split by space and take first element, then remove trailing comma
-        output += "\t" + frame.split(" ")[0].replace(",", "")
+        # Take each frame, split by space and take first element
+        output += "\t" + frame.split(" ")[0]
         output += frame[0][:-3] + " = ()\n"
     return output
 
@@ -242,6 +242,6 @@ def write_file(loc, filename, ext, content):
     with open((BASE_PATH / loc / (filename + ext)).resolve(), "w") as file:
         file.write(content.replace('\t', '    '))
 
-
-write_file("common", "frames", ".py", generate_frame_class(parse_frames(get_git(SOURCE_URL, SOURCE_ANCHOR)[1])))
-write_file("common", "frame_enum", ".py", generate_frame_enum(parse_frame_enum(get_git(SOURCE_URL, SOURCE_ANCHOR)[0])))
+if __name__ == "__main__":
+    write_file("common", "frames", ".py", generate_frame_class(parse_frames(get_git(SOURCE_URL, SOURCE_ANCHOR)[1])))
+    write_file("common", "frame_enum", ".py", generate_frame_enum(parse_frame_enum(get_git(SOURCE_URL, SOURCE_ANCHOR)[0])))
