@@ -10,9 +10,9 @@ class BusConfig:
 class AutoNumber(Enum):
     def __new__(cls):
         value = len(cls.__members__)  # note no + 1
-        obj = object.__new__(cls)
-        obj._value_ = value
-        return obj
+        new_object = object.__new__(cls)
+        new_object._value_ = value
+        return new_object
 
 
 class Priority(Enum):

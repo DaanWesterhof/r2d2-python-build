@@ -3,34 +3,41 @@ from time import time
 import threading
 import os
 from multiprocessing.managers import BaseManager
+from abc import abstractclassmethod, ABC
 
 from common.common import Frame, Priority, BusConfig, FrameWrapper
 from common.frame_enum import FrameType
 
 
-class BaseComm:
+class BaseComm(ABC):
     """
     Interface for communication classes.
     """
-
+    @abstractclassmethod
     def listen_for(self, comm_listen_for: list) -> None:
-        raise NotImplementedError('Please implement listen_for')
+        pass
 
+    @abstractclassmethod
     def accepts_frame(self, type: FrameType) -> bool:
-        raise NotImplementedError('Please implement accepts_frame')
+        pass
 
+    @abstractclassmethod
     def request(self, type, prio: Priority = Priority.NORMAL) -> None:
-        raise NotImplementedError('Please implement request')
+        pass
 
+    @abstractclassmethod
     def send(self, frame, prio: Priority = Priority.NORMAL) -> None:
-        raise NotImplementedError('Please implement send')
+        pass
 
+    @abstractclassmethod
     def has_data(self) -> bool:
-        raise NotImplementedError('Please implement has_data')
+        pass
 
+    @abstractclassmethod
     def get_data(self) -> Frame:
-        raise NotImplementedError('Please implement get_data')
+        pass
 
+    @abstractclassmethod
     def stop(self) -> None:
         pass
 

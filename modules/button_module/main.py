@@ -8,7 +8,6 @@ from modules.button_module.module.mod import Module
 
 should_stop = False
 
-
 class TestButton:
     """
     Button-dummy class that returns random True and False values on read.
