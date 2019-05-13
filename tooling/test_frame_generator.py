@@ -117,6 +117,25 @@ def test_CLI_flag():
     output = parse_frames(input_string)
     assert expected_output == output
 
+def test_CLI_flag_parse_frames_negative():
+    """this test makes sure only the correct c++ doc string gets parsed."""
+    parse_frames = tooling.frame_generator.parse_frames
+    input_string = r"""
+    /** @cond CLI COMMAND @endcond
+     * BAD comment
+     */
+
+    /** @cond CLI COMMAND @endcond
+     * GOOD comment
+    */
+    struct frame_button_state_s {
+        bool pressed;
+    };
+    """
+    expected_output = [('frame_button_state_s', ['bool pressed'], ['GOOD comment'])]
+    output = parse_frames(input_string)
+    assert expected_output == output
+
 def test_CLI_flag_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
     input_frames = [("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
