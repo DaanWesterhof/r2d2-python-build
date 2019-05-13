@@ -214,7 +214,7 @@ def generate_frame_class(frames):
         output += "\t\tsuper(" + ''.join(classNameWords) + ", self).__init__()\n"
         output += "\t\tself.type = FrameType." + frameType + '\n'
         output += "\t\tself.format = '" + frameFormat + "'\n"
-        output += "\t\tself.length = " + str(length) + '\n'
+        output += "\t\tself.length = " + str(length) + '\n\n'
         output += "\tdef set_data(self, " + ', '.join(typedList) + '):\n'
         output += "\t\tself.data = struct.pack(self.format, " + ', '.join(nameList) + ')\n'
         output += "\n\n"
