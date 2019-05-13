@@ -40,7 +40,7 @@ def test_parse_frames():
         bool flag;
     }
     """.strip()
-    expected_output = [("frame_test_frame", ['bool flag'])]
+    expected_output = [("frame_test_frame", ['bool flag'], [])]
     output = parse_frames(input_string)
     assert output == expected_output
 
@@ -61,7 +61,7 @@ def test_parse_frame_enum():
 
 def test_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
-    input_frames = [("frame_test_frame", ['bool flag'])]
+    input_frames = [("frame_test_frame", ['bool flag'], [])]
     expected_output = """
 from .common import Frame
 from common.frame_enum import FrameType
@@ -70,6 +70,7 @@ import struct
 
 class FrameTestFra(Frame):
 \tMEMBERS = ['flag']
+\tDESCRIPTION = ""
 
 \tdef __init__(self):
 \t\tsuper(FrameTestFra, self).__init__()
