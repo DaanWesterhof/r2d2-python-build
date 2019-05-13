@@ -11,8 +11,9 @@ import datetime
 from pathlib import Path
 
 
-FRAME_REGEX = re.compile(r'(?:\/\*\* @cond CLI COMMAND @endcond(.*?)\*\/.*?)?(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
-COMMENT_REGEX = re.compile(r'\*(.*?)$', re.MULTILINE)
+FRAME_REGEX = re.compile(r'(?:\/\*\*([^\/]*?)\*\/[\n\s]+struct\s+)?(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+CLI_FLAG_REGEX = re.compile(r'@cond CLI COMMAND @endcond.*?\n(.*)', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+COMMENT_REGEX = re.compile(r'\*(.*?)\n')
 ENUM_REGEX = re.compile(r'frame_id ?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
 RAW_GITHUB = "https://raw.githubusercontent.com/"
@@ -137,10 +138,13 @@ def get_git(url, split_string: str):
 
 def parse_frames(input_string: str):
     matches = FRAME_REGEX.findall(input_string)
-    
+
     results = []
     for idx, match in enumerate(matches):
-        match = [[line.strip() for line in COMMENT_REGEX.findall(match[0])]] + list(match[1:])
+        cli_description = CLI_FLAG_REGEX.findall(match[0])
+        if cli_description:
+            cli_description = [line.strip() for line in COMMENT_REGEX.findall(cli_description[0])]
+
         lines = match[2].split('\n')
         items = []
         for line in lines:
@@ -155,7 +159,7 @@ def parse_frames(input_string: str):
                 line = line[:-1]
             items.append(line.strip())
 
-        results.append((match[1].strip(), items, match[0]))
+        results.append((match[1].strip(), items, cli_description))
     return results
 
 
