@@ -10,9 +10,10 @@ import urllib.request
 import datetime
 from pathlib import Path
 
+
 FRAME_REGEX = re.compile(r'(?:\/\*\* @cond CLI COMMAND @endcond(.*?)\*\/.*?)?(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 COMMENT_REGEX = re.compile(r'\*(.*?)$', re.MULTILINE)
-ENUM_REGEX = re.compile(r'frame_id.?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+ENUM_REGEX = re.compile(r'frame_id ?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
 RAW_GITHUB = "https://raw.githubusercontent.com/"
 REPOSITORY = "R2D2-2019/internal_communication/"
@@ -170,8 +171,8 @@ def parse_frame_enum(input_string: str):
         if not line or line.startswith('//'):
             continue
 
-        # Remove trailing ;
-        if line.endswith(';'):
+        # Remove trailing ,
+        if line.endswith(','):
             line = line[:-1]
         items.append(line.strip())
     return items
@@ -248,8 +249,8 @@ def generate_frame_enum(frames):
 
     # For each frame in the file
     for frame in frames:
-        # Take each frame, split by space and take first element, then remove trailing comma
-        output += "\t" + frame.split(" ")[0].replace(",", "")
+        # Take each frame, split by space and take first element
+        output += "\t" + frame.split(" ")[0]
         output += frame[0][:-3] + " = ()\n"
     return output
 
@@ -259,9 +260,10 @@ def write_file(loc, filename, ext, content):
     with open((BASE_PATH / loc / (filename + ext)).resolve(), "w") as file:
         file.write(content.replace('\t', '    '))
 
-write_file(
-    "common", "frames", ".py",
-    content=generate_frame_class(parse_frames(get_git(SOURCE_URL, SOURCE_ANCHOR)[1])))
-write_file(
-    "common", "frame_enum", ".py",
-    content=generate_frame_enum(parse_frame_enum(get_git(SOURCE_URL, SOURCE_ANCHOR)[0])))
+if __name__ == "__main__":
+    write_file(
+        "common", "frames", ".py",
+        content=generate_frame_class(parse_frames(get_git(SOURCE_URL, SOURCE_ANCHOR)[1])))
+    write_file(
+        "common", "frame_enum", ".py",
+        content=generate_frame_enum(parse_frame_enum(get_git(SOURCE_URL, SOURCE_ANCHOR)[0])))
