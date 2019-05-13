@@ -10,7 +10,10 @@ import urllib.request
 import datetime
 from pathlib import Path
 
-CLASS_REGEX = re.compile(r'(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+
+FRAME_REGEX = re.compile(r'(?:\/\*\*([^\/]*?)\*\/[\n\s]+struct\s+)?(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+CLI_FLAG_REGEX = re.compile(r'@cond CLI COMMAND @endcond.*?\n(.*)', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+COMMENT_REGEX = re.compile(r'\*(.*?)\n')
 ENUM_REGEX = re.compile(r'frame_id ?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
 RAW_GITHUB = "https://raw.githubusercontent.com/"
@@ -134,10 +137,15 @@ def get_git(url, split_string: str):
 
 
 def parse_frames(input_string: str):
-    matches = CLASS_REGEX.findall(input_string)
+    matches = FRAME_REGEX.findall(input_string)
+
     results = []
     for idx, match in enumerate(matches):
-        lines = match[1].split('\n')
+        cli_description = CLI_FLAG_REGEX.findall(match[0])
+        if cli_description:
+            cli_description = [line.strip() for line in COMMENT_REGEX.findall(cli_description[0])]
+
+        lines = match[2].split('\n')
         items = []
         for line in lines:
             line = line.strip()
@@ -151,16 +159,12 @@ def parse_frames(input_string: str):
                 line = line[:-1]
             items.append(line.strip())
 
-        results.append((match[0].strip(), items))
+        results.append((match[1].strip(), items, cli_description))
     return results
-
-    # for result in results:
-    #   print(result)
 
 
 def parse_frame_enum(input_string: str):
     match = ENUM_REGEX.findall(input_string)[0]
-    # print(matches)
 
     lines = match.split('\n')
     items = []
@@ -175,11 +179,7 @@ def parse_frame_enum(input_string: str):
         if line.endswith(','):
             line = line[:-1]
         items.append(line.strip())
-    #    print(results)
     return items
-
-    # for result in results:
-    #   print(result)
 
 
 def generate_frame_class(frames):
@@ -226,12 +226,16 @@ def generate_frame_class(frames):
             ))
 
         output += "class " + ''.join(classNameWords) + "(Frame):\n"
-        output += "\tMEMBERS = [" + ', '.join(["'" + m + "'" for m in nameList]) + "]\n\n"
+        output += "\tMEMBERS = [" + ', '.join(["'" + m + "'" for m in nameList]) + "]\n"
+        output += "\tDESCRIPTION = \""
+        for line in frame[2]:
+            output += line + '\\n'
+        output += "\"\n\n"
         output += "\tdef __init__(self):\n"
         output += "\t\tsuper(" + ''.join(classNameWords) + ", self).__init__()\n"
         output += "\t\tself.type = FrameType." + frameType + '\n'
         output += "\t\tself.format = '" + frameFormat + "'\n"
-        output += "\t\tself.length = " + str(length) + "\n\n"
+        output += "\t\tself.length = " + str(length) + '\n\n'
         output += "\tdef set_data(self, " + ', '.join(typedList) + '):\n'
         output += "\t\tself.data = struct.pack(self.format, " + ', '.join(nameList) + ')\n'
         output += "\n\n"

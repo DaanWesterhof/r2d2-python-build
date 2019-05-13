@@ -40,7 +40,7 @@ def test_parse_frames():
         bool flag;
     }
     """.strip()
-    expected_output = [("frame_test_frame", ['bool flag'])]
+    expected_output = [("frame_test_frame", ['bool flag'], [])]
     output = parse_frames(input_string)
     assert output == expected_output
 
@@ -61,7 +61,7 @@ def test_parse_frame_enum():
 
 def test_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
-    input_frames = [("frame_test_frame", ['bool flag'])]
+    input_frames = [("frame_test_frame", ['bool flag'], [])]
     expected_output = """
 from .common import Frame
 from common.frame_enum import FrameType
@@ -70,6 +70,7 @@ import struct
 
 class FrameTestFra(Frame):
 \tMEMBERS = ['flag']
+\tDESCRIPTION = ""
 
 \tdef __init__(self):
 \t\tsuper(FrameTestFra, self).__init__()
@@ -99,4 +100,65 @@ class FrameType(AutoNumber):
 \tCOUNT = ()
 """
     output = generate_frame_enum(input_frames)
+    assert remove_leading_line(output) == expected_output
+
+def test_CLI_flag():
+    parse_frames = tooling.frame_generator.parse_frames
+    input_string = r"""
+    /** @cond CLI COMMAND @endcondtest
+     * Packet containing the state of 
+     * a button.
+     */
+    struct frame_button_state_s {
+        bool pressed;
+    };
+    """
+    expected_output = [('frame_button_state_s', ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    output = parse_frames(input_string)
+    assert expected_output == output
+
+def test_CLI_flag_parse_frames_negative():
+    """this test makes sure only the correct c++ doc string gets parsed."""
+    parse_frames = tooling.frame_generator.parse_frames
+    input_string = r"""
+    /** @cond CLI COMMAND @endcond
+     * BAD comment
+     */
+
+    /** @cond CLI COMMAND @endcond
+     * GOOD comment
+    */
+    struct frame_button_state_s {
+        bool pressed;
+    };
+    """
+    expected_output = [('frame_button_state_s', ['bool pressed'], ['GOOD comment'])]
+    output = parse_frames(input_string)
+    assert expected_output == output
+
+def test_CLI_flag_generate_frame_class():
+    generate_frame_class = tooling.frame_generator.generate_frame_class
+    input_frames = [("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    expected_output = """
+from .common import Frame
+from common.frame_enum import FrameType
+import struct
+
+
+class FrameButtonState(Frame):
+\tMEMBERS = ['pressed']
+\tDESCRIPTION = "Packet containing the state of\\na button.\\n"
+
+\tdef __init__(self):
+\t\tsuper(FrameButtonState, self).__init__()
+\t\tself.type = FrameType.BUTTON_STATE
+\t\tself.format = '?'
+\t\tself.length = 1
+
+\tdef set_data(self, pressed: bool):
+\t\tself.data = struct.pack(self.format, pressed)
+
+
+"""
+    output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
