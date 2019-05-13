@@ -1,22 +1,29 @@
+"""
+this module contains configuration and base Frame definitions
+"""
 import struct
 from enum import Enum
 
-
 class BusConfig:
+    "this class contains the configuration options for the bus"
     AUTH_KEY = b'r2d2'
     PORT = 5000
     ADDRESS = ('127.0.0.1', PORT)
 
 
 class AutoNumber(Enum):
+    """this enum class automatily generates """
     def __new__(cls):
         value = len(cls.__members__)  # note no + 1
-        obj = object.__new__(cls)
-        obj._value_ = value
-        return obj
+        new_object = object.__new__(cls)
+        new_object._value_ = value
+        return new_object
 
 
 class Priority(Enum):
+    """
+    Defines the priority of a package on the bus.
+    """
     HIGH = 0
     NORMAL = 1
     LOW = 2
@@ -65,7 +72,8 @@ class Frame:
         self.request = False
         self.priority = Priority.NORMAL
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Returns the length of the members"""
         return len(self.MEMBERS)
 
     def __length_hint__(self):
@@ -125,6 +133,7 @@ class Frame:
         """
         Check if this frame type has a member
         by the given name.
+        Enables the in operator with if statements
 
         :param key:
         :return:
