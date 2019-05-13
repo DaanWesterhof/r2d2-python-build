@@ -144,13 +144,9 @@ def parse_frames(input):
         results.append((match[1].strip(), items, match[0]))
     return results
 
-    # for result in results:
-    #   print(result)
-
 
 def parse_frame_enum(input):
     match = ENUM_REGEX.findall(input)[0]
-    # print(matches)
 
     lines = match.split('\n')
     items = []
@@ -165,11 +161,7 @@ def parse_frame_enum(input):
         if line.endswith(';'):
             line = line[:-1]
         items.append(line.strip())
-    #    print(results)
     return items
-
-    # for result in results:
-    #   print(result)
 
 
 def generate_frame_class(frames):
@@ -213,20 +205,16 @@ def generate_frame_class(frames):
             ))
 
         output += "class " + ''.join(classNameWords) + "(Frame):\n"
-        output += "\tMEMBERS = [" + ', '.join(["'" + m + "'" for m in nameList]) + "]\n\n"
+        output += "\tMEMBERS = [" + ', '.join(["'" + m + "'" for m in nameList]) + "]\n"
+        output += "\tDESCRIPTION = \""
+        for line in frame[2]:
+            output += line + '\\n'
+        output += "\"\n\n"
         output += "\tdef __init__(self):\n"
         output += "\t\tsuper(" + ''.join(classNameWords) + ", self).__init__()\n"
         output += "\t\tself.type = FrameType." + frameType + '\n'
         output += "\t\tself.format = '" + frameFormat + "'\n"
         output += "\t\tself.length = " + str(length) + '\n'
-
-        if frame[2]:
-            output += "\t\tself.comment = \""
-            for line in frame[2]:
-                output += line + '\\n'
-            output += "\""
-
-        output += '\n'
         output += "\tdef set_data(self, " + ', '.join(typedList) + '):\n'
         output += "\t\tself.data = struct.pack(self.format, " + ', '.join(nameList) + ')\n'
         output += "\n\n"
