@@ -1,36 +1,83 @@
+"""
+this module provides the API to the python bus
+"""
+
 from queue import Queue
 from time import time
 import threading
 import os
 from multiprocessing.managers import BaseManager
+from abc import abstractclassmethod, ABC
 
 from common.common import Frame, Priority, BusConfig, FrameWrapper
 from common.frame_enum import FrameType
 
 
-class BaseComm:
+class BaseComm(ABC):
     """
     Interface for communication classes.
     """
-
+    @abstractclassmethod
     def listen_for(self, comm_listen_for: list) -> None:
-        raise NotImplementedError('Please implement listen_for')
+        """
+        Specify what frame types this modules
+        should receive from the bus.
 
-    def accepts_frame(self, type: FrameType) -> bool:
-        raise NotImplementedError('Please implement accepts_frame')
+        :param comm_listen_for:
+        :return:
+        """
 
-    def request(self, type, prio: Priority = Priority.NORMAL) -> None:
-        raise NotImplementedError('Please implement request')
+    @abstractclassmethod
+    def accepts_frame(self, frame_type: FrameType) -> bool:
+        """
+        Does this modules accept the given
+        frame type?
 
+        :param type:
+        :return:
+        """
+
+    @abstractclassmethod
+    def request(self, frame_type: FrameType, prio: Priority = Priority.NORMAL) -> None:
+        """
+        Request data from the bus
+
+        :param type:
+        :param prio:
+        :return:
+        """
+
+    @abstractclassmethod
     def send(self, frame, prio: Priority = Priority.NORMAL) -> None:
-        raise NotImplementedError('Please implement send')
+        """
+        Put a frame on the bus.
 
+        :param type:
+        :param data:
+        :param prio:
+        """
+
+    @abstractclassmethod
     def has_data(self) -> bool:
-        raise NotImplementedError('Please implement has_data')
+        """
+        Whether there is data available for
+        processing for this instance.
 
+        :return:
+        """
+
+    @abstractclassmethod
     def get_data(self) -> Frame:
-        raise NotImplementedError('Please implement get_data')
+        """
+        Non-blocking, will throw the Empty
+        exception if no data is available.
 
+        Check if there is data available for processing
+        first with has_data.
+        :return: common.Frame
+        """
+
+    @abstractclassmethod
     def stop(self) -> None:
         pass
 
@@ -108,39 +155,17 @@ class Comm(BaseComm):
         )
 
     def listen_for(self, comm_listen_for: list) -> None:
-        """
-        Specify what frame types this modules
-        should receive from the bus.
-
-        :param comm_listen_for:
-        :return:
-        """
         self.comm_listen_for = comm_listen_for
 
         if FrameType.ALL in comm_listen_for:
             self.accepts_all = True
 
     def accepts_frame(self, type: FrameType) -> bool:
-        """
-        Does this modules accept the given
-        frame type?
-
-        :param type:
-        :return:
-        """
         if self.accepts_all:
             return True
         return type in self.comm_listen_for
 
     def request(self, type, prio: Priority = Priority.NORMAL) -> None:
-        """
-        Request data from the bus
-
-        :param type:
-        :param prio:
-        :return:
-        """
-
         frame = Frame()
         frame.type = type
         frame.request = True
@@ -149,38 +174,15 @@ class Comm(BaseComm):
         self._push_frame(frame)
 
     def send(self, frame, prio: Priority = Priority.NORMAL) -> None:
-        """
-        Put a frame on the bus.
-
-        :param type:
-        :param data:
-        :param prio:
-        """
         frame.request = False
         frame.priority = prio
 
         self._push_frame(frame)
 
     def has_data(self) -> bool:
-        """
-        Whether there is data available for
-        processing for this instance.
-
-        :return:
-        """
-
         return not self.received.empty()
 
     def get_data(self) -> Frame:
-        """
-        Non-blocking, will throw the Empty
-        exception if no data is available.
-
-        Check if there is data available for processing
-        first with has_data.
-        :return: common.Frame
-        """
-
         item = self.received.get()
         self.received.task_done()
         return item

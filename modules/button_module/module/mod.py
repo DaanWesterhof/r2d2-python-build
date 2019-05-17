@@ -1,9 +1,12 @@
+"""this file defines the module class for button_module"""
+
 from client.comm import BaseComm
 from common.frame_enum import FrameType
 from common.frames import FrameButtonState
 
 
 class Module:
+    """this Module listens for button requests and responds with the state of the button"""
     def __init__(self, comm: BaseComm, button):
         self.comm = comm
         self.comm.listen_for([FrameType.BUTTON_STATE])

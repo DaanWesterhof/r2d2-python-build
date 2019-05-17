@@ -1,9 +1,12 @@
+"""this file defines the module for controller_module"""
+
 from client.comm import BaseComm
 from common.frame_enum import FrameType
 from common.frames import FrameActivityLedState
 
 
 class Module:
+    "this module requests a button state and forwards the result as a ActivityLedState"
     def __init__(self, comm: BaseComm):
         self.comm = comm
         self.comm.listen_for([FrameType.BUTTON_STATE])
