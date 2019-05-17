@@ -7,6 +7,10 @@ This document is WIP!
 Set the `PYTHONPATH` environment variable to the root directory of `r2d2-python-build`.
 Use the entire path; things like `~` won't work!
 
+### When running `main.py` i get `ConnectionRefusedError: No connection could be made because the target
+machine actively refused it`
+Ensure that the bus manager is running in the background. Start the manager with `python manager/manager.py`
+
 ## Introduction
 ### What makes a module?
 A basic module consists of two files:
@@ -210,7 +214,7 @@ This high level image should give an overview of how the system works. The squar
 
 ### Modules and processes
 Every module should run in its owm process. Once created, the `Comm` class can be used to connect to the manager process that should be already running.
-In practice, this means your module is started by simply doing `python3 module/main.py` while the manager is running in the background.
+In practice, this means your module is started by simply doing `python3 module/main.py` while the manager is running in the background. **Make sure you manually start the manager**
 
 ### Processes vs threads (in Python)
 In Python, there is something called the Global Interpreter Lock, or GIL.
@@ -225,7 +229,7 @@ A downside is that interprocess communication is tricky and can be quite slow (r
 
 ## Components
 ### Manager
-`manager.py` in the `manager` folder is a file that should be started in a separate process.
+`manager.py` in the `manager` folder is a file that should be started in a separate process. Start the manager with `python manager/manager.py`
 When actually deployed, this file should run in the background as a service.
 Modules can dynamically connect or disconnect from the manager application at will, providing a lot of flexibility.
 
