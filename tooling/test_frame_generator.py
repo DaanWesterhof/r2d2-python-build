@@ -106,7 +106,7 @@ def test_CLI_flag():
     parse_frames = tooling.frame_generator.parse_frames
     input_string = r"""
     /** @cond CLI COMMAND @endcondtest
-     * Packet containing the state of 
+     * Packet containing the state of
      * a button.
      */
     struct frame_button_state_s {

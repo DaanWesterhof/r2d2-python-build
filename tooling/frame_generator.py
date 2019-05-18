@@ -11,7 +11,7 @@ import datetime
 from pathlib import Path
 
 
-FRAME_REGEX = re.compile(r'(?:\/\*\*([^\/]*?)\*\/[\n\s]+struct\s+)?(frame_.+?)\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+FRAME_REGEX = re.compile(r'(?:\/\*{2}((?:(?!\*\/).)*?)\*\/\s+struct )?(frame\w+) \{(.*?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 CLI_FLAG_REGEX = re.compile(r'@cond CLI COMMAND @endcond.*?\n(.*)', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 COMMENT_REGEX = re.compile(r'\*(.*?)\n')
 ENUM_REGEX = re.compile(r'frame_id ?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
