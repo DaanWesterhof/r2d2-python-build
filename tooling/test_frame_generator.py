@@ -1,5 +1,4 @@
-
-import pytest
+"tests tooling/frame_generator"
 
 import tooling.frame_generator
 
