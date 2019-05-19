@@ -223,19 +223,13 @@ def get_git(url: str, split_string: str) -> list:
         .split(split_string)
     )
 
-def write_file(loc, filename, ext, content):
-    # Write the output to the file
-    with open((BASE_PATH / loc / (filename + ext)).resolve(), "w") as file:
-        file.write(content.replace('\t', '    '))
 
 def _path(loc, filename):
     return (BASE_PATH / loc / filename).resolve()
 
 if __name__ == "__main__":
     ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
-    write_file(
-        "common", "frames", ".py",
-        content=generate_frame_class(parse_frames(FRAME_TEXT)))
-    write_file(
-        "common", "frame_enum", ".py",
-        content=generate_frame_enum(parse_frame_enum(ENUM_TEXT)))
+    with open(_path('common', 'frames.py'), 'w') as frames_file:
+        frames_file.write(generate_frame_class(parse_frames(FRAME_TEXT)).replace('\t', ' '*4))
+    with open(_path('common', 'frame_enum.py'), 'w') as enum_file:
+        enum_file.write(generate_frame_enum(parse_frame_enum(ENUM_TEXT)).replace('\t', ' '*4))
