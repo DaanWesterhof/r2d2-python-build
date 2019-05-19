@@ -228,6 +228,8 @@ def write_file(loc, filename, ext, content):
     with open((BASE_PATH / loc / (filename + ext)).resolve(), "w") as file:
         file.write(content.replace('\t', '    '))
 
+def _path(loc, filename):
+    return (BASE_PATH / loc / filename).resolve()
 
 if __name__ == "__main__":
     write_file(
