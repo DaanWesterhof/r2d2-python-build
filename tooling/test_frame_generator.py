@@ -4,9 +4,9 @@ import tooling.frame_generator
 
 # ! does not test get_gid and write_file.
 
-def remove_leading_line(s:str)->str:
+def remove_leading_line(string:str)->str:
     "removes the first line"
-    return '\n'.join(s.split('\n')[1:])
+    return '\n'.join(string.split('\n')[1:])
 
 
 def test_TYPE_TABLE():
