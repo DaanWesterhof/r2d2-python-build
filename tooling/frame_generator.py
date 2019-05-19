@@ -54,7 +54,15 @@ TYPE_TABLE = {
     'void *':               CppType(format='P', size=4, python_type=int),
 }
 
-def parse_cpp(input_string, regex=FRAME_REGEX):
+def parse_cpp(input_string: str, regex: re.Pattern = FRAME_REGEX) -> ...:
+    """
+    this method parses the input_string using the regex pattern
+    and compiles a list of Class objects containing every c++ class
+
+    :input_string: a string containing c++ code.
+    :regex: a regex pattern, to be used to parse c++ structs and classes
+    :return: a list() containg Class() objects
+    """
     classes = []
     for match in regex.findall(input_string):
         cpp_class = Class(match[1].strip(), [], [])
