@@ -23,19 +23,21 @@ def test_TYPE_TABLE():
         assert value.python_type in (str, int, bool, float)
 
 def test_parse_frames():
-    parse_frames = tooling.frame_generator.parse_frames
+    parse_frames = tooling.frame_generator.parse_cpp
+    Class = tooling.frame_generator.Class
     input_string = """
     class frame_test_frame {
         bool flag;
     }
     """.strip()
-    expected_output = [("frame_test_frame", ['bool flag'], [])]
+    expected_output = [Class("frame_test_frame", ['bool flag'], [])]
+
     output = parse_frames(input_string)
     assert output == expected_output
 
 def test_parse_frame_enum():
     # frame_id.?\{(.+?)\}
-    parse_frame_enum = tooling.frame_generator.parse_frame_enum
+    parse_frame_enum = tooling.frame_generator.parse_cpp
     input_string = """
     enum frame_test : frame_id {
         NONE = 0,
@@ -45,7 +47,7 @@ def test_parse_frame_enum():
     }
     """.strip()
     expected_output = ['NONE = 0', 'TEST', 'ALL', 'COUNT']
-    output = parse_frame_enum(input_string)
+    output = parse_frame_enum(input_string)[0].members
     assert output == expected_output
 
 def test_generate_frame_class():
@@ -77,7 +79,8 @@ class FrameTestFra(Frame):
 
 def test_generate_frame_enums():
     generate_frame_enum = tooling.frame_generator.generate_frame_enum
-    input_frames = ['NONE = 0', 'TEST', 'ALL', 'COUNT']
+    Class = tooling.frame_generator.Class
+    input_frames = [Class('frame_id', ['NONE = 0', 'TEST', 'ALL', 'COUNT'], [])]
     expected_output = """
 from common.common import AutoNumber
 
@@ -92,7 +95,7 @@ class FrameType(AutoNumber):
     assert remove_leading_line(output) == expected_output
 
 def test_CLI_flag():
-    parse_frames = tooling.frame_generator.parse_frames
+    parse_frames = tooling.frame_generator.parse_cpp
     input_string = r"""
     /** @cond CLI COMMAND @endcondtest
      * Packet containing the state of
@@ -108,7 +111,7 @@ def test_CLI_flag():
 
 def test_CLI_flag_parse_frames_negative():
     """this test makes sure only the correct c++ doc string gets parsed."""
-    parse_frames = tooling.frame_generator.parse_frames
+    parse_frames = tooling.frame_generator.parse_cpp
     input_string = r"""
     /** @cond CLI COMMAND @endcond
      * BAD comment
