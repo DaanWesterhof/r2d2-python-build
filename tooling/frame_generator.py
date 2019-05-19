@@ -85,11 +85,6 @@ def parse_cpp(input_string, regex=FRAME_REGEX):
     return classes
 
 
-def get_git(url, split_string: str):
-    rawContents = urllib.request.urlopen(url).read()
-    decodedContents = rawContents.decode("utf-8")
-    contents = decodedContents.split(split_string)
-    return contents
 
 
 def parse_frames(input_string: str):
@@ -219,6 +214,11 @@ def generate_frame_enum(frames):
         output += frame[0][:-3] + " = ()\n"
     return output
 
+def get_git(url, split_string: str):
+    rawContents = urllib.request.urlopen(url).read()
+    decodedContents = rawContents.decode("utf-8")
+    contents = decodedContents.split(split_string)
+    return contents
 
 def write_file(loc, filename, ext, content):
     # Write the output to the file
