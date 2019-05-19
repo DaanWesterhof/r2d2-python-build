@@ -9,15 +9,19 @@ def remove_leading_line(string: str)->str:
     return '\n'.join(string.split('\n')[1:])
 
 
-def test_TYPE_TABLE():
-    TYPE_TABLE = tooling.frame_generator.TYPE_TABLE
-    assert isinstance(TYPE_TABLE, dict)
-    for key, value in TYPE_TABLE.items():
+def test_type_table():
+    "tests that the TYPE_TABLE from frame_generator is created properly"
+    type_table = tooling.frame_generator.TYPE_TABLE
+    assert isinstance(type_table, dict)
+    for key, value in type_table.items():
         assert isinstance(key, str)
+
         assert isinstance(value.format, str)
         assert len(value.format) == 1
+
         assert isinstance(value.size, int)
         assert value.size >= 0
+
         assert isinstance(value.python_type, type)
         assert value.python_type in (str, int, bool, float)
 
