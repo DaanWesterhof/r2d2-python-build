@@ -232,9 +232,10 @@ def _path(loc, filename):
     return (BASE_PATH / loc / filename).resolve()
 
 if __name__ == "__main__":
+    ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
     write_file(
         "common", "frames", ".py",
-        content=generate_frame_class(parse_frames(get_git(SOURCE_URL, SOURCE_ANCHOR)[1])))
+        content=generate_frame_class(parse_frames(FRAME_TEXT)))
     write_file(
         "common", "frame_enum", ".py",
-        content=generate_frame_enum(parse_frame_enum(get_git(SOURCE_URL, SOURCE_ANCHOR)[0])))
+        content=generate_frame_enum(parse_frame_enum(ENUM_TEXT)))
