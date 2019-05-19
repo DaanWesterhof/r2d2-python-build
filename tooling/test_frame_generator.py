@@ -26,7 +26,8 @@ def test_type_table():
         assert value.python_type in (str, int, bool, float)
 
 def test_parse_frames():
-    parse_frames = tooling.frame_generator.parse_cpp
+    """tests that frames classsare generated properly"""
+    parse_cpp = tooling.frame_generator.parse_cpp
     Class = tooling.frame_generator.Class
     input_string = """
     class frame_test_frame {
@@ -35,7 +36,7 @@ def test_parse_frames():
     """.strip()
     expected_output = [Class("frame_test_frame", ['bool flag'], [])]
 
-    output = parse_frames(input_string)
+    output = parse_cpp(input_string)
     assert output == expected_output
 
 def test_parse_frame_enum():
