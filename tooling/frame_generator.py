@@ -22,6 +22,8 @@ ENUM_REGEX = re.compile(
 
 
 CppType = namedtuple("CPP_TYPE", ['format', 'size', 'python_type'])
+Class = namedtuple("Frame", ["name", "members", "doc_string"])
+
 
 TYPE_TABLE = {
     'char':                 CppType(format='c', size=1, python_type=str),
