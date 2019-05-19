@@ -63,6 +63,26 @@ TYPE_TABLE = {
     'void *':               CppType(format='P', size=4, python_type=int),
 }
 
+def parse_cpp(input_string, regex=FRAME_REGEX):
+    classes = []
+    for match in regex.findall(input_string):
+        cpp_class = Class(match[1].strip(), [], [])
+        # parse description
+        cli_description = CLI_FLAG_REGEX.findall(match[0])
+        if cli_description:
+            cpp_class.doc_string.extend([
+                line.strip() for line in COMMENT_REGEX.findall(cli_description[0])
+            ])
+        # parse function body
+        for line in match[2].split('\n'):
+            line = line.strip()
+            if line.endswith((';', ',')):
+                line = line[:-1]
+            if not line or line.startswith('//'):
+                continue
+            cpp_class.members.append(line)
+        classes.append(cpp_class)
+    return classes
 
 
 def get_git(url, split_string: str):
