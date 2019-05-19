@@ -17,9 +17,6 @@ FRAME_REGEX = re.compile(
 CLI_FLAG_REGEX = re.compile(
     r'@cond CLI COMMAND @endcond.*?\n(.*)', REGEX_FLAGS)
 COMMENT_REGEX = re.compile(r'\*(.*?)\n')
-ENUM_REGEX = re.compile(
-    r'frame_id ?\{(.+?)\}', REGEX_FLAGS)
-
 
 CppType = namedtuple("CppType", ['format', 'size', 'python_type'])
 Class = namedtuple("Frame", ["name", "members", "doc_string"])
@@ -77,56 +74,6 @@ def parse_cpp(input_string, regex=FRAME_REGEX):
             cpp_class.members.append(line)
         classes.append(cpp_class)
     return classes
-
-
-
-
-def parse_frames(input_string: str):
-    matches = FRAME_REGEX.findall(input_string)
-
-    results = []
-    for idx, match in enumerate(matches):
-        cli_description = CLI_FLAG_REGEX.findall(match[0])
-        if cli_description:
-            cli_description = [
-                line.strip() for line in COMMENT_REGEX.findall(cli_description[0])
-            ]
-
-        lines = match[2].split('\n')
-        items = []
-        for line in lines:
-            line = line.strip()
-
-            # Skip empty or commented lines
-            if not line or line.startswith('//'):
-                continue
-
-            # Remove trailing ;
-            if line.endswith(';'):
-                line = line[:-1]
-            items.append(line.strip())
-
-        results.append((match[1].strip(), items, cli_description))
-    return results
-
-
-def parse_frame_enum(input_string: str):
-    match = ENUM_REGEX.findall(input_string)[0]
-
-    lines = match.split('\n')
-    items = []
-    for line in lines:
-        line = line.strip()
-
-        # Skip empty or commented lines
-        if not line or line.startswith('//'):
-            continue
-
-        # Remove trailing ,
-        if line.endswith(','):
-            line = line[:-1]
-        items.append(line.strip())
-    return items
 
 
 def generate_frame_class(frames):
@@ -201,8 +148,12 @@ def generate_frame_enum(frames):
         + "class FrameType(AutoNumber):" + "\n"
     )
 
+    frame_id_filter = (lambda cls: cls.name == 'frame_id')
+    frame_ids = list(filter(frame_id_filter, frames))
+    assert len(frame_ids) == 1
+    frame_id: Class = frame_ids[0]
     # For each frame in the file
-    for frame in frames:
+    for frame in frame_id.members:
         # Take each frame, split by space and take first element
         output += "\t" + frame.split(" ")[0]
         output += frame[0][:-3] + " = ()\n"
@@ -233,6 +184,6 @@ def _path(loc, filename):
 if __name__ == "__main__":
     ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
     with open(_path('common', 'frames.py'), 'w') as frames_file:
-        frames_file.write(generate_frame_class(parse_frames(FRAME_TEXT)).replace('\t', ' '*4))
+        frames_file.write(generate_frame_class(parse_cpp(FRAME_TEXT)).replace('\t', ' '*4))
     with open(_path('common', 'frame_enum.py'), 'w') as enum_file:
-        enum_file.write(generate_frame_enum(parse_frame_enum(ENUM_TEXT)).replace('\t', ' '*4))
+        enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)).replace('\t', ' '*4))
