@@ -2,9 +2,9 @@
 
 import tooling.frame_generator
 
-# ! does not test get_gid and write_file.
+# ! does not test get_gid
 
-def remove_leading_line(string:str)->str:
+def remove_leading_line(string: str)->str:
     "removes the first line"
     return '\n'.join(string.split('\n')[1:])
 
@@ -104,7 +104,8 @@ def test_CLI_flag():
         bool pressed;
     };
     """
-    expected_output = [('frame_button_state_s', ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    expected_output = [
+        ('frame_button_state_s', ['bool pressed'], ['Packet containing the state of', 'a button.'])]
     output = parse_frames(input_string)
     assert expected_output == output
 
@@ -129,7 +130,8 @@ def test_CLI_flag_parse_frames_negative():
 
 def test_CLI_flag_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
-    input_frames = [("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    input_frames = [
+        ("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
     expected_output = """
 from .common import Frame
 from common.frame_enum import FrameType
