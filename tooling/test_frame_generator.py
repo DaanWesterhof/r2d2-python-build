@@ -10,28 +10,17 @@ def remove_leading_line(s:str)->str:
     return '\n'.join(s.split('\n')[1:])
 
 
-def test_type_formats():
-    type_formats = tooling.frame_generator.TYPE_FORMATS
-    assert isinstance(type_formats, dict)
-    for key, value in type_formats.items():
+def test_TYPE_TABLE():
+    TYPE_TABLE = tooling.frame_generator.TYPE_TABLE
+    assert isinstance(TYPE_TABLE, dict)
+    for key, value in TYPE_TABLE.items():
         assert isinstance(key, str)
-        assert isinstance(value, str)
-        assert len(value) == 1
-
-def test_type_sizes():
-    type_sizes = tooling.frame_generator.TYPE_SIZES
-    assert isinstance(type_sizes, dict)
-    for key, value in type_sizes.items():
-        assert isinstance(key, str)
-        assert isinstance(value, int)
-        assert value >= 0
-
-def test_corresponding_types():
-    corresponding_types = tooling.frame_generator.CORRESPONDING_TYPES
-    assert isinstance(corresponding_types, dict)
-    for key, value in corresponding_types.items():
-        assert isinstance(key, str)
-        assert isinstance(value, type)
+        assert isinstance(value.format, str)
+        assert len(value.format) == 1
+        assert isinstance(value.size, int)
+        assert value.size >= 0
+        assert isinstance(value.python_type, type)
+        assert value.python_type in (str, int, bool, float)
 
 def test_parse_frames():
     parse_frames = tooling.frame_generator.parse_frames

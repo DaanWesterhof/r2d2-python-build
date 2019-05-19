@@ -9,12 +9,16 @@ import re
 import urllib.request
 import datetime
 from pathlib import Path
+from collections import namedtuple
 
-
-FRAME_REGEX = re.compile(r'(?:\/\*{2}((?:(?!\*\/).)*?)\*\/\s+struct )?(frame\w+) \{(.*?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
-CLI_FLAG_REGEX = re.compile(r'@cond CLI COMMAND @endcond.*?\n(.*)', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
+FRAME_REGEX = re.compile(
+    r'(?:\/\*{2}((?:(?!\*\/).)*?)\*\/\s+struct )?(frame\w+) \{(.*?)\}', REGEX_FLAGS)
+CLI_FLAG_REGEX = re.compile(
+    r'@cond CLI COMMAND @endcond.*?\n(.*)', REGEX_FLAGS)
 COMMENT_REGEX = re.compile(r'\*(.*?)\n')
-ENUM_REGEX = re.compile(r'frame_id ?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+ENUM_REGEX = re.compile(
+    r'frame_id ?\{(.+?)\}', REGEX_FLAGS)
 
 RAW_GITHUB = "https://raw.githubusercontent.com/"
 REPOSITORY = "R2D2-2019/internal_communication/"
@@ -25,108 +29,40 @@ SOURCE_URL = RAW_GITHUB + REPOSITORY + BRANCH + SOURCE_FILE
 SOURCE_ANCHOR = "/** #PythonAnchor# */"
 BASE_PATH = Path(__file__).parent.parent
 
-# The different format converters
-TYPE_FORMATS = {
-    'char': 'c',
-    'int8_t': 'c',
-    'signed char': 'b',
-    'unsigned char': 'B',
-    'uint8_t': 'B',
-    '_Bool': '?',
-    'bool': '?',
-    'short': 'h',
-    'int16_t': 'h',
-    'unsigned short': 'H',
-    'uint16_t': 'H',
-    'int': 'i',
-    'int32_t': 'i',
-    'unsigned int': 'I',
-    'uint32_t': 'I',
-    'long': 'l',
-    'int64_t': 'l',
-    'unsigned long': 'L',
-    'uint64_t': 'L',
-    'long long': 'q',
-    'unsigned long long': 'Q',
-    'ssize_t': 'n',
-    'size_t': 'N',
-    'float': 'f',
-    'double': 'd',
-    'char[]': 's',
-    'void*': 'P',
-    'void *': 'P'
-}
+CPP_TYPE = namedtuple("CPP_TYPE", ['format', 'size', 'python_type'])
 
-TYPE_SIZES = {
-    'char': 1,
-    'int8_t': 1,
-    'signed char': 1,
-    'unsigned char': 1,
-    'uint8_t': 1,
-    '_Bool': 1,
-    'bool': 1,
-    'short': 2,
-    'int16_t': 2,
-    'unsigned short': 2,
-    'uint16_t': 2,
-    'int': 4,
-    'int32_t': 4,
-    'unsigned int': 4,
-    'uint32_t': 4,
-
-    # Yes, 4!
+TYPE_TABLE = {
+    'char':                 CPP_TYPE(format='c', size=1, python_type=str),
+    'int8_t':               CPP_TYPE(format='c', size=1, python_type=int),
+    'signed char':          CPP_TYPE(format='b', size=1, python_type=str),
+    'unsigned char':        CPP_TYPE(format='B', size=1, python_type=str),
+    'uint8_t':              CPP_TYPE(format='B', size=1, python_type=int),
+    '_Bool':                CPP_TYPE(format='?', size=1, python_type=bool),
+    'bool':                 CPP_TYPE(format='?', size=1, python_type=bool),
+    'short':                CPP_TYPE(format='h', size=2, python_type=int),
+    'int16_t':              CPP_TYPE(format='h', size=2, python_type=int),
+    'unsigned short':       CPP_TYPE(format='H', size=2, python_type=int),
+    'uint16_t':             CPP_TYPE(format='H', size=2, python_type=int),
+    'int':                  CPP_TYPE(format='i', size=4, python_type=int),
+    'int32_t':              CPP_TYPE(format='i', size=4, python_type=int),
+    'unsigned int':         CPP_TYPE(format='I', size=4, python_type=int),
+    'uint32_t':             CPP_TYPE(format='I', size=4, python_type=int),
     # GCC 8.2 ARM has sizeof(long) == 4, sizeof(long long) == 8
-    'long': 4,
-    'int64_t': 4,
-    'unsigned long': 4,
-    'uint64_t': 8,
-    'long long': 8,
-    'unsigned long long': 8,
-    'ssize_t': 4,
-    'size_t': 4,
-    'float': 4,
-    'double': 8,
-
-    # Note: arrays need other exceptions
-    'char[]': 4,
-
-    # While included, void* should be avoided!
-    'void*': 4,
-    'void *': 4
+    'long':                 CPP_TYPE(format='l', size=4, python_type=int),
+    'int64_t':              CPP_TYPE(format='l', size=4, python_type=int),
+    'unsigned long':        CPP_TYPE(format='L', size=4, python_type=int),
+    'uint64_t':             CPP_TYPE(format='L', size=8, python_type=int),
+    'long long':            CPP_TYPE(format='q', size=8, python_type=int),
+    'unsigned long long':   CPP_TYPE(format='Q', size=8, python_type=int),
+    'ssize_t':              CPP_TYPE(format='n', size=4, python_type=int),
+    'size_t':               CPP_TYPE(format='N', size=4, python_type=int),
+    'float':                CPP_TYPE(format='f', size=4, python_type=float),
+    'double':               CPP_TYPE(format='d', size=8, python_type=float),
+    'char[]':               CPP_TYPE(format='s', size=4, python_type=str),
+    'void*':                CPP_TYPE(format='P', size=4, python_type=int),
+    'void *':               CPP_TYPE(format='P', size=4, python_type=int),
 }
 
-CORRESPONDING_TYPES = {
-    'char': str,
-    'int8_t': int,
-    'signed char': str,
-    'unsigned char': str,
-    'uint8_t': int,
-    '_Bool': bool,
-    'bool': bool,
-    'short': int,
-    'int16_t': int,
-    'unsigned short': int,
-    'uint16_t': int,
-    'int': int,
-    'int32_t': int,
-    'unsigned int': int,
-    'uint32_t': int,
-    'long': int,
-    'int64_t': int,
-    'unsigned long': int,
-    'uint64_t': int,
-    'long long': int,
-    'unsigned long long': int,
-    'ssize_t': int,
-    'size_t': int,
-    'float': float,
-    'double': float,
-
-    # Note: arrays need other exceptions
-    'char[]': str,
-    'void*': int,
-    'void *': int
-}
 
 
 def get_git(url, split_string: str):
@@ -143,7 +79,9 @@ def parse_frames(input_string: str):
     for idx, match in enumerate(matches):
         cli_description = CLI_FLAG_REGEX.findall(match[0])
         if cli_description:
-            cli_description = [line.strip() for line in COMMENT_REGEX.findall(cli_description[0])]
+            cli_description = [
+                line.strip() for line in COMMENT_REGEX.findall(cli_description[0])
+            ]
 
         lines = match[2].split('\n')
         items = []
@@ -217,27 +155,31 @@ def generate_frame_class(frames):
         nameList = []
         typedList = []
         for type in frame[1]:
-            split = type.split(' ')
-            length += TYPE_SIZES[split[0]]
-            frameFormat += TYPE_FORMATS[split[0]]
-            nameList.append(split[1])
+            type, name = type.split(' ')
+            cpp_type = TYPE_TABLE[type]
+            length += cpp_type.size
+            frameFormat += cpp_type.format
+            nameList.append(name)
             typedList.append('{}: {}'.format(
-                split[1], CORRESPONDING_TYPES[split[0]].__name__
+                name, cpp_type.python_type.__name__
             ))
 
         output += "class " + ''.join(classNameWords) + "(Frame):\n"
-        output += "\tMEMBERS = [" + ', '.join(["'" + m + "'" for m in nameList]) + "]\n"
+        output += "\tMEMBERS = [" + \
+            ', '.join(["'" + m + "'" for m in nameList]) + "]\n"
         output += "\tDESCRIPTION = \""
         for line in frame[2]:
             output += line + '\\n'
         output += "\"\n\n"
         output += "\tdef __init__(self):\n"
-        output += "\t\tsuper(" + ''.join(classNameWords) + ", self).__init__()\n"
+        output += "\t\tsuper(" + ''.join(classNameWords) + \
+            ", self).__init__()\n"
         output += "\t\tself.type = FrameType." + frameType + '\n'
         output += "\t\tself.format = '" + frameFormat + "'\n"
         output += "\t\tself.length = " + str(length) + '\n\n'
         output += "\tdef set_data(self, " + ', '.join(typedList) + '):\n'
-        output += "\t\tself.data = struct.pack(self.format, " + ', '.join(nameList) + ')\n'
+        output += "\t\tself.data = struct.pack(self.format, " + \
+            ', '.join(nameList) + ')\n'
         output += "\n\n"
     return output
 
@@ -263,6 +205,7 @@ def write_file(loc, filename, ext, content):
     # Write the output to the file
     with open((BASE_PATH / loc / (filename + ext)).resolve(), "w") as file:
         file.write(content.replace('\t', '    '))
+
 
 if __name__ == "__main__":
     write_file(
