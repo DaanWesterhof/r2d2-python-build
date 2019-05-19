@@ -20,14 +20,6 @@ COMMENT_REGEX = re.compile(r'\*(.*?)\n')
 ENUM_REGEX = re.compile(
     r'frame_id ?\{(.+?)\}', REGEX_FLAGS)
 
-RAW_GITHUB = "https://raw.githubusercontent.com/"
-REPOSITORY = "R2D2-2019/internal_communication/"
-BRANCH = "master"
-SOURCE_FILE = "/code/headers/frame_types.hpp"
-SOURCE_URL = RAW_GITHUB + REPOSITORY + BRANCH + SOURCE_FILE
-
-SOURCE_ANCHOR = "/** #PythonAnchor# */"
-BASE_PATH = Path(__file__).parent.parent
 
 CppType = namedtuple("CPP_TYPE", ['format', 'size', 'python_type'])
 
@@ -223,6 +215,15 @@ def get_git(url: str, split_string: str) -> list:
         .split(split_string)
     )
 
+RAW_GITHUB = "https://raw.githubusercontent.com/"
+REPOSITORY = "R2D2-2019/internal_communication/"
+BRANCH = "master"
+SOURCE_FILE = "/code/headers/frame_types.hpp"
+SOURCE_URL = RAW_GITHUB + REPOSITORY + BRANCH + SOURCE_FILE
+
+SOURCE_ANCHOR = "/** #PythonAnchor# */"
+
+BASE_PATH = Path(__file__).parent.parent
 
 def _path(loc, filename):
     return (BASE_PATH / loc / filename).resolve()
