@@ -1,3 +1,4 @@
+"""testcases for tooling/frame_generator.py"""
 
 import pytest
 
@@ -5,9 +6,10 @@ import tooling.frame_generator
 
 # ! does not test get_gid and write_file.
 
-def remove_leading_line(s:str)->str:
+
+def remove_leading_line(string: str)->str:
     "removes the first line"
-    return '\n'.join(s.split('\n')[1:])
+    return '\n'.join(string.split('\n')[1:])
 
 
 def test_type_formats():
@@ -18,6 +20,7 @@ def test_type_formats():
         assert isinstance(value, str)
         assert len(value) == 1
 
+
 def test_type_sizes():
     type_sizes = tooling.frame_generator.TYPE_SIZES
     assert isinstance(type_sizes, dict)
@@ -26,12 +29,14 @@ def test_type_sizes():
         assert isinstance(value, int)
         assert value >= 0
 
+
 def test_corresponding_types():
     corresponding_types = tooling.frame_generator.CORRESPONDING_TYPES
     assert isinstance(corresponding_types, dict)
     for key, value in corresponding_types.items():
         assert isinstance(key, str)
         assert isinstance(value, type)
+
 
 def test_parse_frames():
     parse_frames = tooling.frame_generator.parse_frames
@@ -43,6 +48,7 @@ def test_parse_frames():
     expected_output = [("frame_test_frame", ['bool flag'], [])]
     output = parse_frames(input_string)
     assert output == expected_output
+
 
 def test_parse_frame_enum():
     # frame_id.?\{(.+?)\}
@@ -58,6 +64,7 @@ def test_parse_frame_enum():
     expected_output = ['NONE = 0', 'TEST', 'ALL', 'COUNT']
     output = parse_frame_enum(input_string)
     assert output == expected_output
+
 
 def test_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
@@ -86,6 +93,7 @@ class FrameTestFra(Frame):
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
 
+
 def test_generate_frame_enums():
     generate_frame_enum = tooling.frame_generator.generate_frame_enum
     input_frames = ['NONE = 0', 'TEST', 'ALL', 'COUNT']
@@ -102,6 +110,7 @@ class FrameType(AutoNumber):
     output = generate_frame_enum(input_frames)
     assert remove_leading_line(output) == expected_output
 
+
 def test_CLI_flag():
     parse_frames = tooling.frame_generator.parse_frames
     input_string = r"""
@@ -113,9 +122,14 @@ def test_CLI_flag():
         bool pressed;
     };
     """
-    expected_output = [('frame_button_state_s', ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    expected_output = [(
+        'frame_button_state_s',
+        ['bool pressed'],
+        ['Packet containing the state of', 'a button.']
+    )]
     output = parse_frames(input_string)
     assert expected_output == output
+
 
 def test_CLI_flag_parse_frames_negative():
     """this test makes sure only the correct c++ doc string gets parsed."""
@@ -132,13 +146,19 @@ def test_CLI_flag_parse_frames_negative():
         bool pressed;
     };
     """
-    expected_output = [('frame_button_state_s', ['bool pressed'], ['GOOD comment'])]
+    expected_output = [
+        ('frame_button_state_s', ['bool pressed'], ['GOOD comment'])]
     output = parse_frames(input_string)
     assert expected_output == output
 
+
 def test_CLI_flag_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
-    input_frames = [("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    input_frames = [(
+        "frame_button_state_s",
+        ['bool pressed'],
+        ['Packet containing the state of', 'a button.']
+    )]
     expected_output = """
 from .common import Frame
 from common.frame_enum import FrameType
