@@ -214,11 +214,14 @@ def generate_frame_enum(frames):
         output += frame[0][:-3] + " = ()\n"
     return output
 
-def get_git(url, split_string: str):
-    rawContents = urllib.request.urlopen(url).read()
-    decodedContents = rawContents.decode("utf-8")
-    contents = decodedContents.split(split_string)
-    return contents
+def get_git(url: str, split_string: str) -> list:
+    """returns the file specified in the url as text, split with split_string"""
+    return (
+        urllib.request.urlopen(url)
+        .read()
+        .decode("utf-8")
+        .split(split_string)
+    )
 
 def write_file(loc, filename, ext, content):
     # Write the output to the file
