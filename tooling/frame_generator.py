@@ -21,7 +21,7 @@ ENUM_REGEX = re.compile(
     r'frame_id ?\{(.+?)\}', REGEX_FLAGS)
 
 
-CppType = namedtuple("CPP_TYPE", ['format', 'size', 'python_type'])
+CppType = namedtuple("CppType", ['format', 'size', 'python_type'])
 Class = namedtuple("Frame", ["name", "members", "doc_string"])
 
 
