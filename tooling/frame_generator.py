@@ -86,6 +86,10 @@ def parse_cpp(input_string: str, regex: re.Pattern = FRAME_REGEX) -> ...:
                 line = line[:-1]
             if not line or line.startswith('//'):
                 continue
+            match = re.match(r"char (\w+)\[\d+\]", line)
+            if match:
+                cpp_class.members.append("char[] " + match.groups()[0])
+                continue
             cpp_class.members.append(line)
         classes.append(cpp_class)
     return classes
@@ -105,7 +109,7 @@ or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 {imports}
 
 __maintainer = "Isha Geurtsen"
-__date__ = {date}
+__date__ = "{date}"
 __status__ = "Production"
 """
 
