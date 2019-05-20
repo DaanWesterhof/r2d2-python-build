@@ -5,9 +5,7 @@ import tooling.frame_generator
 # ! does not test get_gid
 
 def remove_leading_line(string: str)->str:
-    "removes the first line"
-    return '\n'.join(string.split('\n')[1:])
-
+    return string.split(sep='__status__ = "Production"', maxsplit=1)[1]
 
 def test_type_table():
     "tests that the TYPE_TABLE from frame_generator is created properly"
@@ -59,23 +57,18 @@ def test_generate_frame_class():
     Class = tooling.frame_generator.Class
     input_frames = [Class("frame_test_frame_s", ['bool flag'], [])]
     expected_output = """
-from .common import Frame
-from common.frame_enum import FrameType
-import struct
-
-
 class FrameTestFrame(Frame):
-\tMEMBERS = ['flag']
-\tDESCRIPTION = ""
+    MEMBERS = ['flag']
+    DESCRIPTION = ""
 
-\tdef __init__(self):
-\t\tsuper(FrameTestFrame, self).__init__()
-\t\tself.type = FrameType.TEST_FRAME
-\t\tself.format = '?'
-\t\tself.length = 1
+    def __init__(self):
+        super(FrameTestFrame, self).__init__()
+        self.type = FrameType.TEST_FRAME
+        self.format = '?'
+        self.length = 1
 
-\tdef set_data(self, flag: bool):
-\t\tself.data = struct.pack(self.format, flag)
+    def set_data(self, flag: bool):
+        self.data = struct.pack(self.format, flag)
 
 
 """
@@ -87,14 +80,11 @@ def test_generate_frame_enums():
     Class = tooling.frame_generator.Class
     input_frames = [Class('frame_id', ['NONE = 0', 'TEST', 'ALL', 'COUNT'], [])]
     expected_output = """
-from common.common import AutoNumber
-
-
 class FrameType(AutoNumber):
-\tNONE = ()
-\tTEST = ()
-\tALL = ()
-\tCOUNT = ()
+    NONE = ()
+    TEST = ()
+    ALL = ()
+    COUNT = ()
 """
     output = generate_frame_enum(input_frames)
     assert remove_leading_line(output) == expected_output
@@ -137,26 +127,23 @@ def test_CLI_flag_parse_frames_negative():
 def test_CLI_flag_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
     Class = tooling.frame_generator.Class
-    input_frames = [
-        Class("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    input_frames = [Class(
+        "frame_button_state_s",
+        ['bool pressed'],
+        ['Packet containing the state of', 'a button.'])]
     expected_output = """
-from .common import Frame
-from common.frame_enum import FrameType
-import struct
-
-
 class FrameButtonState(Frame):
-\tMEMBERS = ['pressed']
-\tDESCRIPTION = "Packet containing the state of\\na button."
+    MEMBERS = ['pressed']
+    DESCRIPTION = "Packet containing the state of\\na button."
 
-\tdef __init__(self):
-\t\tsuper(FrameButtonState, self).__init__()
-\t\tself.type = FrameType.BUTTON_STATE
-\t\tself.format = '?'
-\t\tself.length = 1
+    def __init__(self):
+        super(FrameButtonState, self).__init__()
+        self.type = FrameType.BUTTON_STATE
+        self.format = '?'
+        self.length = 1
 
-\tdef set_data(self, pressed: bool):
-\t\tself.data = struct.pack(self.format, pressed)
+    def set_data(self, pressed: bool):
+        self.data = struct.pack(self.format, pressed)
 
 
 """
