@@ -97,52 +97,41 @@ def generate_frame_class(frames):
     # For each frame int the file
     for frame in frames:
 
-        # Get the elements of the class name
-        class_name_words = frame[0][:-2].split("_")
+        frame_name = "".join(map(str.capitalize, frame.name.split("_")[:-1]))
 
         # The FrameType enumeration name
-        frame_type = '_'.join(class_name_words[1:]).upper()
-
-        # Capitalize all the word in the class name to conform
-        # to PEP-8
-        class_name_words = list(map(str.capitalize, class_name_words))
+        frame_type = '_'.join(frame.name.split("_")[1:-1]).upper()
 
         # The frame format for in the class, follows
         # the format of the 'struct' Python 3.7 package
         frame_format = ''
 
-        # The length of the struct in bytes
-        length = 0
+        # The size of the struct in bytes
+        size = 0
 
         # A list of arguments for the 'set_data' method
         name_list = []
         typed_list = []
         for data_member in frame.members:
             member_type, member_name = data_member.split(' ')
-            cpp_type = TYPE_TABLE[member_type]
-            length += cpp_type.size
-            frame_format += cpp_type.format
+            member_type = TYPE_TABLE[member_type]
+            size += member_type.size
+            frame_format += member_type.format
             name_list.append(member_name)
-            typed_list.append('{}: {}'.format(
-                member_name, cpp_type.python_type.__name__
-            ))
+            typed_list.append('{}: {}'.format(member_name, member_type.python_type.__name__))
 
-        output += "class " + ''.join(class_name_words) + "(Frame):\n"
-        output += "\tMEMBERS = [" + \
-            ', '.join(["'" + m + "'" for m in name_list]) + "]\n"
+        output += "class " + frame_name + "(Frame):\n"
+        output += "\tMEMBERS = [" + ', '.join(["'" + m + "'" for m in name_list]) + "]\n"
         output += "\tDESCRIPTION = \""
-        for line in frame[2]:
-            output += line + '\\n'
+        output += "\\n".join(frame[2])
         output += "\"\n\n"
         output += "\tdef __init__(self):\n"
-        output += "\t\tsuper(" + ''.join(class_name_words) + \
-            ", self).__init__()\n"
+        output += "\t\tsuper(" + frame_name + ", self).__init__()\n"
         output += "\t\tself.type = FrameType." + frame_type + '\n'
         output += "\t\tself.format = '" + frame_format + "'\n"
-        output += "\t\tself.length = " + str(length) + '\n\n'
+        output += "\t\tself.length = " + str(size) + '\n\n'
         output += "\tdef set_data(self, " + ', '.join(typed_list) + '):\n'
-        output += "\t\tself.data = struct.pack(self.format, " + \
-            ', '.join(name_list) + ')\n'
+        output += "\t\tself.data = struct.pack(self.format, " + ', '.join(name_list) + ')\n'
         output += "\n\n"
     return output
 

@@ -56,20 +56,21 @@ def test_parse_frame_enum():
 
 def test_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
-    input_frames = [("frame_test_frame", ['bool flag'], [])]
+    Class = tooling.frame_generator.Class
+    input_frames = [Class("frame_test_frame_s", ['bool flag'], [])]
     expected_output = """
 from .common import Frame
 from common.frame_enum import FrameType
 import struct
 
 
-class FrameTestFra(Frame):
+class FrameTestFrame(Frame):
 \tMEMBERS = ['flag']
 \tDESCRIPTION = ""
 
 \tdef __init__(self):
-\t\tsuper(FrameTestFra, self).__init__()
-\t\tself.type = FrameType.TEST_FRA
+\t\tsuper(FrameTestFrame, self).__init__()
+\t\tself.type = FrameType.TEST_FRAME
 \t\tself.format = '?'
 \t\tself.length = 1
 
@@ -135,8 +136,9 @@ def test_CLI_flag_parse_frames_negative():
 
 def test_CLI_flag_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
+    Class = tooling.frame_generator.Class
     input_frames = [
-        ("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+        Class("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
     expected_output = """
 from .common import Frame
 from common.frame_enum import FrameType
@@ -145,7 +147,7 @@ import struct
 
 class FrameButtonState(Frame):
 \tMEMBERS = ['pressed']
-\tDESCRIPTION = "Packet containing the state of\\na button.\\n"
+\tDESCRIPTION = "Packet containing the state of\\na button."
 
 \tdef __init__(self):
 \t\tsuper(FrameButtonState, self).__init__()
