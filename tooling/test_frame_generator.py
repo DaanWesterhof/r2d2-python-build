@@ -149,3 +149,54 @@ class FrameButtonState(Frame):
 """
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
+
+def test_multilength_string():
+    input_string = """
+    /**
+     * Struct to set a character on a display. This shows
+     * a colored character at given location. The character
+     * can be any character from the un-extended
+     * ascii table (characters 0-127)
+     *
+     * For now an alternative to x/y and color based character
+     * drawing.
+     */
+    R2D2_PACK_STRUCT
+    struct frame_display_8x8_character_via_cursor_s {
+        // Targets which cursor to write to. This should be one
+        // your module claimed. The characters will be drawn
+        // from the cursor position as starting location.
+        uint8_t cursor_id;
+
+        // The characters to draw
+        // Last element because of string optimisation
+        char characters[247];
+    };
+"""
+    expected_output = [tooling.frame_generator.Class(
+        name="frame_display_8x8_character_via_cursor_s",
+        members=[
+            "uint8_t cursor_id",
+            "char characters[247]"],
+        doc_string=[])]
+    output = tooling.frame_generator.parse_cpp(input_string)
+    assert expected_output == output
+    input_frame = output
+    expected_output = """
+class FrameDisplay8x8CharacterViaCursor(Frame):
+    MEMBERS = ['cursor_id', 'characters']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameDisplay8x8CharacterViaCursor, self).__init__()
+        self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
+        self.format = 'B247s'
+        self.length = 248
+
+    def set_data(self, cursor_id: int, characters: str):
+        self.data = struct.pack(self.format, cursor_id, characters)
+
+
+"""
+    output = tooling.frame_generator.generate_frame_class(input_frame)
+    assert expected_output == remove_leading_line(output)

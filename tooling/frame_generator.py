@@ -86,10 +86,6 @@ def parse_cpp(input_string: str, regex: re.Pattern = FRAME_REGEX) -> ...:
                 line = line[:-1]
             if not line or line.startswith('//'):
                 continue
-            match = re.match(r"char (\w+)\[\d+\]", line)
-            if match:
-                cpp_class.members.append("char[] " + match.groups()[0])
-                continue
             cpp_class.members.append(line)
         classes.append(cpp_class)
     return classes
@@ -162,8 +158,13 @@ def generate_frame_class(frames):
         name_list = []
         typed_list = []
         for data_member in frame.members:
-            member_type, member_name = data_member.split(' ')
-            member_type = TYPE_TABLE[member_type]
+            match = re.match(r"(char) (\w+)\[(\d+)\]", data_member)
+            if match:
+                member_type, member_name, member_size = match.groups()
+                member_type = CppType(str(int(member_size))+"s", int(member_size), str)
+            else:
+                member_type, member_name = data_member.split(' ')
+                member_type = TYPE_TABLE[member_type]
             size += member_type.size
             frame_format += member_type.format
             name_list.append(member_name)
