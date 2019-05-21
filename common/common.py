@@ -110,7 +110,13 @@ class Frame:
         # If the data is not yet set, we'll create an empty
         # tuple as filler
         if not self.data:
-            data = tuple(0 for _ in range(len(self.MEMBERS)))
+            tmp = list(range(len(self.MEMBERS)))
+            format_ = list(self.format.split(' '))
+            for i, specifier in enumerate(format_):
+                if specifier in ['?', 'c'] or str.endswith(specifier, 's'):
+                    tmp[i] = chr(26)
+            data = tuple(tmp)
+            del tmp
         else:
             data = self.get_data()
 
