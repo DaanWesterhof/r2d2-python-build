@@ -9,12 +9,14 @@ import re
 import urllib.request
 import datetime
 from pathlib import Path
+from collections import namedtuple
 
-
-FRAME_REGEX = re.compile(r'(?:\/\*{2}((?:(?!\*\/).)*?)\*\/\s+struct )?(frame\w+) \{(.*?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
-CLI_FLAG_REGEX = re.compile(r'@cond CLI COMMAND @endcond.*?\n(.*)', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
+FRAME_REGEX = re.compile(
+    r'(?:\/\*{2}((?:(?!\*\/).)*?)\*\/\s+struct )?(frame\w+) \{(.*?)\}', REGEX_FLAGS)
+CLI_FLAG_REGEX = re.compile(
+    r'@cond CLI COMMAND @endcond.*?\n(.*)', REGEX_FLAGS)
 COMMENT_REGEX = re.compile(r'\*(.*?)\n')
-ENUM_REGEX = re.compile(r'frame_id ?\{(.+?)\}', re.IGNORECASE | re.MULTILINE | re.DOTALL)
 
 RAW_GITHUB = "https://raw.githubusercontent.com/"
 REPOSITORY = "R2D2-2019/internal_communication/"
@@ -22,252 +24,210 @@ BRANCH = "master"
 SOURCE_FILE = "/code/headers/frame_types.hpp"
 SOURCE_URL = RAW_GITHUB + REPOSITORY + BRANCH + SOURCE_FILE
 
-SOURCE_ANCHOR = "/** #PythonAnchor# */"
-BASE_PATH = Path(__file__).parent.parent
+CppType = namedtuple("CppType", ['format', 'size', 'python_type'])
+Class = namedtuple("Frame", ["name", "members", "doc_string"])
 
-# The different format converters
-TYPE_FORMATS = {
-    'char': 'c',
-    'int8_t': 'c',
-    'signed char': 'b',
-    'unsigned char': 'B',
-    'uint8_t': 'B',
-    '_Bool': '?',
-    'bool': '?',
-    'short': 'h',
-    'int16_t': 'h',
-    'unsigned short': 'H',
-    'uint16_t': 'H',
-    'int': 'i',
-    'int32_t': 'i',
-    'unsigned int': 'I',
-    'uint32_t': 'I',
-    'long': 'l',
-    'int64_t': 'l',
-    'unsigned long': 'L',
-    'uint64_t': 'L',
-    'long long': 'q',
-    'unsigned long long': 'Q',
-    'ssize_t': 'n',
-    'size_t': 'N',
-    'float': 'f',
-    'double': 'd',
-    'char[]': 's',
-    'void*': 'P',
-    'void *': 'P'
-}
 
-TYPE_SIZES = {
-    'char': 1,
-    'int8_t': 1,
-    'signed char': 1,
-    'unsigned char': 1,
-    'uint8_t': 1,
-    '_Bool': 1,
-    'bool': 1,
-    'short': 2,
-    'int16_t': 2,
-    'unsigned short': 2,
-    'uint16_t': 2,
-    'int': 4,
-    'int32_t': 4,
-    'unsigned int': 4,
-    'uint32_t': 4,
-
-    # Yes, 4!
+TYPE_TABLE = {
+    'char':                 CppType(format='c', size=1, python_type=str),
+    'int8_t':               CppType(format='c', size=1, python_type=int),
+    'signed char':          CppType(format='b', size=1, python_type=str),
+    'unsigned char':        CppType(format='B', size=1, python_type=str),
+    'uint8_t':              CppType(format='B', size=1, python_type=int),
+    '_Bool':                CppType(format='?', size=1, python_type=bool),
+    'bool':                 CppType(format='?', size=1, python_type=bool),
+    'short':                CppType(format='h', size=2, python_type=int),
+    'int16_t':              CppType(format='h', size=2, python_type=int),
+    'unsigned short':       CppType(format='H', size=2, python_type=int),
+    'uint16_t':             CppType(format='H', size=2, python_type=int),
+    'int':                  CppType(format='i', size=4, python_type=int),
+    'int32_t':              CppType(format='i', size=4, python_type=int),
+    'unsigned int':         CppType(format='I', size=4, python_type=int),
+    'uint32_t':             CppType(format='I', size=4, python_type=int),
     # GCC 8.2 ARM has sizeof(long) == 4, sizeof(long long) == 8
-    'long': 4,
-    'int64_t': 4,
-    'unsigned long': 4,
-    'uint64_t': 8,
-    'long long': 8,
-    'unsigned long long': 8,
-    'ssize_t': 4,
-    'size_t': 4,
-    'float': 4,
-    'double': 8,
-
-    # Note: arrays need other exceptions
-    'char[]': 4,
-
-    # While included, void* should be avoided!
-    'void*': 4,
-    'void *': 4
-}
-
-CORRESPONDING_TYPES = {
-    'char': str,
-    'int8_t': int,
-    'signed char': str,
-    'unsigned char': str,
-    'uint8_t': int,
-    '_Bool': bool,
-    'bool': bool,
-    'short': int,
-    'int16_t': int,
-    'unsigned short': int,
-    'uint16_t': int,
-    'int': int,
-    'int32_t': int,
-    'unsigned int': int,
-    'uint32_t': int,
-    'long': int,
-    'int64_t': int,
-    'unsigned long': int,
-    'uint64_t': int,
-    'long long': int,
-    'unsigned long long': int,
-    'ssize_t': int,
-    'size_t': int,
-    'float': float,
-    'double': float,
-
-    # Note: arrays need other exceptions
-    'char[]': str,
-    'void*': int,
-    'void *': int
+    'long':                 CppType(format='l', size=4, python_type=int),
+    'int64_t':              CppType(format='l', size=4, python_type=int),
+    'unsigned long':        CppType(format='L', size=4, python_type=int),
+    'uint64_t':             CppType(format='L', size=8, python_type=int),
+    'long long':            CppType(format='q', size=8, python_type=int),
+    'unsigned long long':   CppType(format='Q', size=8, python_type=int),
+    'ssize_t':              CppType(format='n', size=4, python_type=int),
+    'size_t':               CppType(format='N', size=4, python_type=int),
+    'float':                CppType(format='f', size=4, python_type=float),
+    'double':               CppType(format='d', size=8, python_type=float),
+    'char[]':               CppType(format='s', size=4, python_type=str),
+    'void*':                CppType(format='P', size=4, python_type=int),
+    'void *':               CppType(format='P', size=4, python_type=int),
 }
 
 
-def get_git(url, split_string: str):
-    rawContents = urllib.request.urlopen(url).read()
-    decodedContents = rawContents.decode("utf-8")
-    contents = decodedContents.split(split_string)
-    return contents
+def parse_cpp(input_string: str, regex: re.Pattern = FRAME_REGEX) -> ...:
+    """
+    this method parses the input_string using the regex pattern
+    and compiles a list of Class objects containing every c++ class
 
-
-def parse_frames(input_string: str):
-    matches = FRAME_REGEX.findall(input_string)
-
-    results = []
-    for idx, match in enumerate(matches):
+    :input_string: a string containing c++ code.
+    :regex: a regex pattern, to be used to parse c++ structs and classes
+    :return: a list() containg Class() objects
+    """
+    classes = []
+    for match in regex.findall(input_string):
+        cpp_class = Class(match[1].strip(), [], [])
+        # parse description
         cli_description = CLI_FLAG_REGEX.findall(match[0])
         if cli_description:
-            cli_description = [line.strip() for line in COMMENT_REGEX.findall(cli_description[0])]
-
-        lines = match[2].split('\n')
-        items = []
-        for line in lines:
+            cpp_class.doc_string.extend([
+                line.strip() for line in COMMENT_REGEX.findall(cli_description[0])
+            ])
+        # parse function body
+        for line in match[2].split('\n'):
             line = line.strip()
-
-            # Skip empty or commented lines
+            if line.endswith((';', ',')):
+                line = line[:-1]
             if not line or line.startswith('//'):
                 continue
+            match = re.match(r"char (\w+)\[\d+\]", line)
+            if match:
+                cpp_class.members.append("char[] " + match.groups()[0])
+                continue
+            cpp_class.members.append(line)
+        classes.append(cpp_class)
+    return classes
 
-            # Remove trailing ;
-            if line.endswith(';'):
-                line = line[:-1]
-            items.append(line.strip())
 
-        results.append((match[1].strip(), items, cli_description))
-    return results
+HEADER = """#! python
+
+\""" this generated file defines Frames
+
+it is based on the definitons of {url}
+
+if you have a question or a problem.
+please make a github issue on https://github.com/R2D2-2019/r2d2-python-build/issues/new
+or look at https://github.com/R2D2-2019/r2d2-python-build#faq
+\"""
+
+{imports}
+
+__maintainer = "Isha Geurtsen"
+__date__ = "{date}"
+__status__ = "Production"
+"""
+
+FRAME_TEMPLATE = """class {frame_name}(Frame):
+    MEMBERS = [{attribute_names}]
+    DESCRIPTION = "{description}"
+
+    def __init__(self):
+        super({frame_name}, self).__init__()
+        self.type = FrameType.{frame_type}
+        self.format = '{frame_format}'
+        self.length = {size}
+
+    def set_data(self, {attributes_typed}):
+        self.data = struct.pack(self.format, {attributes})
 
 
-def parse_frame_enum(input_string: str):
-    match = ENUM_REGEX.findall(input_string)[0]
-
-    lines = match.split('\n')
-    items = []
-    for line in lines:
-        line = line.strip()
-
-        # Skip empty or commented lines
-        if not line or line.startswith('//'):
-            continue
-
-        # Remove trailing ,
-        if line.endswith(','):
-            line = line[:-1]
-        items.append(line.strip())
-    return items
+"""
 
 
 def generate_frame_class(frames):
+    """generates the body of a python file that defines the c++ frames"""
     # Write the file start
-    output = (
-        "# this class was generated by Nicky's script on "
-        + str(datetime.datetime.now()) + "\n\n"
-        + "from .common import Frame" + "\n"
-        + "from common.frame_enum import FrameType" + "\n"
-        + "import struct" + "\n\n\n"
+    output = HEADER.format(
+        date=datetime.datetime.now(),
+        url=SOURCE_URL,
+        imports="\n".join([
+            "import struct",
+            "from .common import Frame",
+            "from common.frame_enum import FrameType"
+        ]),
     )
 
     # For each frame int the file
     for frame in frames:
 
-        # Get the elements of the class name
-        classNameWords = frame[0][:-2].split("_")
+        frame_name = "".join(map(str.capitalize, frame.name.split("_")[:-1]))
 
         # The FrameType enumeration name
-        frameType = '_'.join(classNameWords[1:]).upper()
-
-        # Capitalize all the word in the class name to conform
-        # to PEP-8
-        for wordNr, word in enumerate(classNameWords):
-            classNameWords[wordNr] = word.capitalize()
+        frame_type = '_'.join(frame.name.split("_")[1:-1]).upper()
 
         # The frame format for in the class, follows
         # the format of the 'struct' Python 3.7 package
-        frameFormat = ''
+        frame_format = ''
 
-        # The length of the struct in bytes
-        length = 0
+        # The size of the struct in bytes
+        size = 0
 
         # A list of arguments for the 'set_data' method
-        nameList = []
-        typedList = []
-        for type in frame[1]:
-            split = type.split(' ')
-            length += TYPE_SIZES[split[0]]
-            frameFormat += TYPE_FORMATS[split[0]]
-            nameList.append(split[1])
-            typedList.append('{}: {}'.format(
-                split[1], CORRESPONDING_TYPES[split[0]].__name__
-            ))
-
-        output += "class " + ''.join(classNameWords) + "(Frame):\n"
-        output += "\tMEMBERS = [" + ', '.join(["'" + m + "'" for m in nameList]) + "]\n"
-        output += "\tDESCRIPTION = \""
-        for line in frame[2]:
-            output += line + '\\n'
-        output += "\"\n\n"
-        output += "\tdef __init__(self):\n"
-        output += "\t\tsuper(" + ''.join(classNameWords) + ", self).__init__()\n"
-        output += "\t\tself.type = FrameType." + frameType + '\n'
-        output += "\t\tself.format = '" + frameFormat + "'\n"
-        output += "\t\tself.length = " + str(length) + '\n\n'
-        output += "\tdef set_data(self, " + ', '.join(typedList) + '):\n'
-        output += "\t\tself.data = struct.pack(self.format, " + ', '.join(nameList) + ')\n'
-        output += "\n\n"
+        name_list = []
+        typed_list = []
+        for data_member in frame.members:
+            member_type, member_name = data_member.split(' ')
+            member_type = TYPE_TABLE[member_type]
+            size += member_type.size
+            frame_format += member_type.format
+            name_list.append(member_name)
+            typed_list.append('{}: {}'.format(
+                member_name, member_type.python_type.__name__))
+        output += FRAME_TEMPLATE.format(
+            frame_name=frame_name,
+            attribute_names=', '.join(["'" + m + "'" for m in name_list]),
+            description='\\n'.join(frame.doc_string),
+            frame_type=frame_type,
+            frame_format=frame_format,
+            size=size,
+            attributes_typed=', '.join(typed_list),
+            attributes=', '.join(name_list),
+        )
     return output
 
 
 def generate_frame_enum(frames):
+    """generates the body of a python file that defines the c++ frame type enum"""
+
     # Write the file start
-    output: str = (
-        "# this enum was generated by Nicky's and Lex's script on "
-        + str(datetime.datetime.now()) + "\n\n"
-        + "from common.common import AutoNumber" + "\n\n\n"
-        + "class FrameType(AutoNumber):" + "\n"
+    output = HEADER.format(
+        date=datetime.datetime.now(),
+        url=SOURCE_URL,
+        imports="from common.common import AutoNumber"
     )
 
+    output += "class FrameType(AutoNumber):\n"
+
+    frame_id_filter = (lambda cls: cls.name == 'frame_id')
+    frame_ids = list(filter(frame_id_filter, frames))
+    assert len(frame_ids) == 1
+    frame_id: Class = frame_ids[0]
     # For each frame in the file
-    for frame in frames:
+    for frame in frame_id.members:
         # Take each frame, split by space and take first element
-        output += "\t" + frame.split(" ")[0]
+        output += " "*4 + frame.split(" ")[0]
         output += frame[0][:-3] + " = ()\n"
     return output
 
 
-def write_file(loc, filename, ext, content):
-    # Write the output to the file
-    with open((BASE_PATH / loc / (filename + ext)).resolve(), "w") as file:
-        file.write(content.replace('\t', '    '))
+def get_git(url: str, split_string: str) -> list:
+    """returns the file specified in the url as text, split with split_string"""
+    return (
+        urllib.request.urlopen(url)
+        .read()
+        .decode("utf-8")
+        .split(split_string)
+    )
+
+
+SOURCE_ANCHOR = "/** #PythonAnchor# */"
+
+BASE_PATH = Path(__file__).parent.parent
+
+
+def _path(loc, filename):
+    return (BASE_PATH / loc / filename).resolve()
+
 
 if __name__ == "__main__":
-    write_file(
-        "common", "frames", ".py",
-        content=generate_frame_class(parse_frames(get_git(SOURCE_URL, SOURCE_ANCHOR)[1])))
-    write_file(
-        "common", "frame_enum", ".py",
-        content=generate_frame_enum(parse_frame_enum(get_git(SOURCE_URL, SOURCE_ANCHOR)[0])))
+    ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
+    with open(_path('common', 'frames.py'), 'w') as frames_file:
+        frames_file.write(generate_frame_class(parse_cpp(FRAME_TEXT)))
+    with open(_path('common', 'frame_enum.py'), 'w') as enum_file:
+        enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))

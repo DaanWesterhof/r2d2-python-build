@@ -1,52 +1,45 @@
-
-import pytest
+"tests tooling/frame_generator"
 
 import tooling.frame_generator
 
-# ! does not test get_gid and write_file.
+# ! does not test get_gid
 
-def remove_leading_line(s:str)->str:
-    "removes the first line"
-    return '\n'.join(s.split('\n')[1:])
+def remove_leading_line(string: str)->str:
+    return string.split(sep='__status__ = "Production"', maxsplit=1)[1]
 
-
-def test_type_formats():
-    type_formats = tooling.frame_generator.TYPE_FORMATS
-    assert isinstance(type_formats, dict)
-    for key, value in type_formats.items():
+def test_type_table():
+    "tests that the TYPE_TABLE from frame_generator is created properly"
+    type_table = tooling.frame_generator.TYPE_TABLE
+    assert isinstance(type_table, dict)
+    for key, value in type_table.items():
         assert isinstance(key, str)
-        assert isinstance(value, str)
-        assert len(value) == 1
 
-def test_type_sizes():
-    type_sizes = tooling.frame_generator.TYPE_SIZES
-    assert isinstance(type_sizes, dict)
-    for key, value in type_sizes.items():
-        assert isinstance(key, str)
-        assert isinstance(value, int)
-        assert value >= 0
+        assert isinstance(value.format, str)
+        assert len(value.format) == 1
 
-def test_corresponding_types():
-    corresponding_types = tooling.frame_generator.CORRESPONDING_TYPES
-    assert isinstance(corresponding_types, dict)
-    for key, value in corresponding_types.items():
-        assert isinstance(key, str)
-        assert isinstance(value, type)
+        assert isinstance(value.size, int)
+        assert value.size >= 0
+
+        assert isinstance(value.python_type, type)
+        assert value.python_type in (str, int, bool, float)
 
 def test_parse_frames():
-    parse_frames = tooling.frame_generator.parse_frames
+    """tests that frames classsare generated properly"""
+    parse_cpp = tooling.frame_generator.parse_cpp
+    Class = tooling.frame_generator.Class
     input_string = """
     class frame_test_frame {
         bool flag;
     }
     """.strip()
-    expected_output = [("frame_test_frame", ['bool flag'], [])]
-    output = parse_frames(input_string)
+    expected_output = [Class("frame_test_frame", ['bool flag'], [])]
+
+    output = parse_cpp(input_string)
     assert output == expected_output
 
 def test_parse_frame_enum():
     # frame_id.?\{(.+?)\}
-    parse_frame_enum = tooling.frame_generator.parse_frame_enum
+    parse_frame_enum = tooling.frame_generator.parse_cpp
     input_string = """
     enum frame_test : frame_id {
         NONE = 0,
@@ -56,30 +49,26 @@ def test_parse_frame_enum():
     }
     """.strip()
     expected_output = ['NONE = 0', 'TEST', 'ALL', 'COUNT']
-    output = parse_frame_enum(input_string)
+    output = parse_frame_enum(input_string)[0].members
     assert output == expected_output
 
 def test_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
-    input_frames = [("frame_test_frame", ['bool flag'], [])]
+    Class = tooling.frame_generator.Class
+    input_frames = [Class("frame_test_frame_s", ['bool flag'], [])]
     expected_output = """
-from .common import Frame
-from common.frame_enum import FrameType
-import struct
+class FrameTestFrame(Frame):
+    MEMBERS = ['flag']
+    DESCRIPTION = ""
 
+    def __init__(self):
+        super(FrameTestFrame, self).__init__()
+        self.type = FrameType.TEST_FRAME
+        self.format = '?'
+        self.length = 1
 
-class FrameTestFra(Frame):
-\tMEMBERS = ['flag']
-\tDESCRIPTION = ""
-
-\tdef __init__(self):
-\t\tsuper(FrameTestFra, self).__init__()
-\t\tself.type = FrameType.TEST_FRA
-\t\tself.format = '?'
-\t\tself.length = 1
-
-\tdef set_data(self, flag: bool):
-\t\tself.data = struct.pack(self.format, flag)
+    def set_data(self, flag: bool):
+        self.data = struct.pack(self.format, flag)
 
 
 """
@@ -88,22 +77,20 @@ class FrameTestFra(Frame):
 
 def test_generate_frame_enums():
     generate_frame_enum = tooling.frame_generator.generate_frame_enum
-    input_frames = ['NONE = 0', 'TEST', 'ALL', 'COUNT']
+    Class = tooling.frame_generator.Class
+    input_frames = [Class('frame_id', ['NONE = 0', 'TEST', 'ALL', 'COUNT'], [])]
     expected_output = """
-from common.common import AutoNumber
-
-
 class FrameType(AutoNumber):
-\tNONE = ()
-\tTEST = ()
-\tALL = ()
-\tCOUNT = ()
+    NONE = ()
+    TEST = ()
+    ALL = ()
+    COUNT = ()
 """
     output = generate_frame_enum(input_frames)
     assert remove_leading_line(output) == expected_output
 
 def test_CLI_flag():
-    parse_frames = tooling.frame_generator.parse_frames
+    parse_frames = tooling.frame_generator.parse_cpp
     input_string = r"""
     /** @cond CLI COMMAND @endcondtest
      * Packet containing the state of
@@ -113,13 +100,14 @@ def test_CLI_flag():
         bool pressed;
     };
     """
-    expected_output = [('frame_button_state_s', ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    expected_output = [
+        ('frame_button_state_s', ['bool pressed'], ['Packet containing the state of', 'a button.'])]
     output = parse_frames(input_string)
     assert expected_output == output
 
 def test_CLI_flag_parse_frames_negative():
     """this test makes sure only the correct c++ doc string gets parsed."""
-    parse_frames = tooling.frame_generator.parse_frames
+    parse_frames = tooling.frame_generator.parse_cpp
     input_string = r"""
     /** @cond CLI COMMAND @endcond
      * BAD comment
@@ -138,25 +126,24 @@ def test_CLI_flag_parse_frames_negative():
 
 def test_CLI_flag_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
-    input_frames = [("frame_button_state_s", ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    Class = tooling.frame_generator.Class
+    input_frames = [Class(
+        "frame_button_state_s",
+        ['bool pressed'],
+        ['Packet containing the state of', 'a button.'])]
     expected_output = """
-from .common import Frame
-from common.frame_enum import FrameType
-import struct
-
-
 class FrameButtonState(Frame):
-\tMEMBERS = ['pressed']
-\tDESCRIPTION = "Packet containing the state of\\na button.\\n"
+    MEMBERS = ['pressed']
+    DESCRIPTION = "Packet containing the state of\\na button."
 
-\tdef __init__(self):
-\t\tsuper(FrameButtonState, self).__init__()
-\t\tself.type = FrameType.BUTTON_STATE
-\t\tself.format = '?'
-\t\tself.length = 1
+    def __init__(self):
+        super(FrameButtonState, self).__init__()
+        self.type = FrameType.BUTTON_STATE
+        self.format = '?'
+        self.length = 1
 
-\tdef set_data(self, pressed: bool):
-\t\tself.data = struct.pack(self.format, pressed)
+    def set_data(self, pressed: bool):
+        self.data = struct.pack(self.format, pressed)
 
 
 """
