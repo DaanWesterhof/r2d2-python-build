@@ -150,7 +150,7 @@ class FrameButtonState(Frame):
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
 
-def test_multilength_string():
+def test_fixed_length_string():
     input_string = """
     /**
      * Struct to set a character on a display. This shows
@@ -195,6 +195,64 @@ class FrameDisplay8x8CharacterViaCursor(Frame):
 
     def set_data(self, cursor_id: int, characters: str):
         self.data = struct.pack(self.format, cursor_id, characters)
+
+
+"""
+    output = tooling.frame_generator.generate_frame_class(input_frame)
+    assert expected_output == remove_leading_line(output)
+
+def test_variable_length_string():
+    input_string = """
+    /**
+     * ONLY USABLE IN PYTHON TO PYTHON COMMUNICATION
+     *
+     * This is a hack that uses the python frame generator
+     * to create a frame with strings instead of chars.
+     * This conversion does not work in c++. These frames
+     * will be sent to swarm management, they only have to
+     * call the command with given parameters and send it
+     * to the destined robot.
+     *
+     * SwarmUI wiki:
+     * https://github.com/R2D2-2019/R2D2-2019/wiki/Swarm-UI
+     */
+    R2D2_PYTHON_FRAME
+    struct frame_ui_command_s {
+        // name of the frame or json command which we want to
+        // send for evaluation to SMM
+        char command[];
+
+        // parameters for the frame from frame_name
+        char params[];
+
+        // destination is used to tell what robot or swarm to
+        // send the command to
+        char destination[];
+    };
+"""
+    expected_output = [tooling.frame_generator.Class(
+        name="frame_ui_command_s",
+        members=[
+            "char command[]",
+            "char params[]",
+            "char destination[]"],
+        doc_string=[])]
+    output = tooling.frame_generator.parse_cpp(input_string)
+    assert expected_output == output
+    input_frame = output
+    expected_output = """
+class FrameUiCommand(Frame):
+    MEMBERS = ['command', 'params', 'destination']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameUiCommand, self).__init__()
+        self.type = FrameType.UI_COMMAND
+        self.format = '255s255s255s'
+        self.length = 765
+
+    def set_data(self, command: str, params: str, destination: str):
+        self.data = struct.pack(self.format, command, params, destination)
 
 
 """
