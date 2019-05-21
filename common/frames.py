@@ -13,8 +13,8 @@ import struct
 from .common import Frame
 from common.frame_enum import FrameType
 
-__maintainer = "Isha Geurtsen"
-__date__ = "2019-05-21 22:47:39.102501"
+__maintainer__ = "Isha Geurtsen"
+__date__ = "2019-05-21 22:50:33.553358"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']

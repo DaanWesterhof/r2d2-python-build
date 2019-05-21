@@ -11,8 +11,8 @@ or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 
 from common.common import AutoNumber
 
-__maintainer = "Isha Geurtsen"
-__date__ = "2019-05-21 22:47:39.112490"
+__maintainer__ = "Isha Geurtsen"
+__date__ = "2019-05-21 22:50:33.565288"
 __status__ = "Production"
 class FrameType(AutoNumber):
     NONE = ()

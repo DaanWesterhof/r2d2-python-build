@@ -104,7 +104,7 @@ or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 
 {imports}
 
-__maintainer = "Isha Geurtsen"
+__maintainer__ = "Isha Geurtsen"
 __date__ = "{date}"
 __status__ = "Production"
 """
