@@ -30,7 +30,7 @@ Class = namedtuple("Frame", ["name", "members", "doc_string"])
 
 TYPE_TABLE = {
     'char':                 CppType(format='c', size=1, python_type=str),
-    'int8_t':               CppType(format='c', size=1, python_type=int),
+    'int8_t':               CppType(format='b', size=1, python_type=int),
     'signed char':          CppType(format='b', size=1, python_type=str),
     'unsigned char':        CppType(format='B', size=1, python_type=str),
     'uint8_t':              CppType(format='B', size=1, python_type=int),
@@ -153,7 +153,7 @@ def generate_frame_class(frames):
 
         # The frame format for in the class, follows
         # the format of the 'struct' Python 3.7 package
-        frame_format = ''
+        frame_format = []
 
         # The size of the struct in bytes
         size = 0
@@ -165,7 +165,7 @@ def generate_frame_class(frames):
             member_type, member_name = data_member.split(' ')
             member_type = TYPE_TABLE[member_type]
             size += member_type.size
-            frame_format += member_type.format
+            frame_format.append(member_type.format)
             name_list.append(member_name)
             typed_list.append('{}: {}'.format(
                 member_name, member_type.python_type.__name__))
@@ -174,7 +174,7 @@ def generate_frame_class(frames):
             attribute_names=', '.join(["'" + m + "'" for m in name_list]),
             description='\\n'.join(frame.doc_string),
             frame_type=frame_type,
-            frame_format=frame_format,
+            frame_format=" ".join(frame_format),
             size=size,
             attributes_typed=', '.join(typed_list),
             attributes=', '.join(name_list),
