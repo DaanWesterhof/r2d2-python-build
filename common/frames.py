@@ -13,8 +13,8 @@ import struct
 from .common import Frame
 from common.frame_enum import FrameType
 
-__maintainer = "Isha Geurtsen"
-__date__ = "2019-05-20 03:44:33.227784"
+__maintainer__ = "Isha Geurtsen"
+__date__ = "2019-05-22 00:39:32.575386"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -65,7 +65,7 @@ class FrameDisplayFilledRectangle(Frame):
     def __init__(self):
         super(FrameDisplayFilledRectangle, self).__init__()
         self.type = FrameType.DISPLAY_FILLED_RECTANGLE
-        self.format = 'BBBBBBB'
+        self.format = 'B B B B B B B'
         self.length = 7
 
     def set_data(self, x: int, y: int, width: int, height: int, red: int, green: int, blue: int):
@@ -79,8 +79,8 @@ class FrameDisplay8x8Character(Frame):
     def __init__(self):
         super(FrameDisplay8x8Character, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER
-        self.format = 'BBBBBs'
-        self.length = 9
+        self.format = 'B B B B B 243s'
+        self.length = 248
 
     def set_data(self, x: int, y: int, red: int, green: int, blue: int, characters: str):
         self.data = struct.pack(self.format, x, y, red, green, blue, characters)
@@ -93,8 +93,8 @@ class FrameDisplay8x8CharacterViaCursor(Frame):
     def __init__(self):
         super(FrameDisplay8x8CharacterViaCursor, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
-        self.format = 'Bs'
-        self.length = 5
+        self.format = 'B 247s'
+        self.length = 248
 
     def set_data(self, cursor_id: int, characters: str):
         self.data = struct.pack(self.format, cursor_id, characters)
@@ -107,7 +107,7 @@ class FrameCursorPosition(Frame):
     def __init__(self):
         super(FrameCursorPosition, self).__init__()
         self.type = FrameType.CURSOR_POSITION
-        self.format = 'BBB'
+        self.format = 'B B B'
         self.length = 3
 
     def set_data(self, cursor_id: int, cursor_x: int, cursor_y: int):
@@ -121,11 +121,25 @@ class FrameCursorColor(Frame):
     def __init__(self):
         super(FrameCursorColor, self).__init__()
         self.type = FrameType.CURSOR_COLOR
-        self.format = 'BBBB'
+        self.format = 'B B B B'
         self.length = 4
 
     def set_data(self, cursor_id: int, red: int, green: int, blue: int):
         self.data = struct.pack(self.format, cursor_id, red, green, blue)
+
+
+class FrameTemperature(Frame):
+    MEMBERS = ['id', 'ambient_temperature', 'object_temperature']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameTemperature, self).__init__()
+        self.type = FrameType.TEMPERATURE
+        self.format = 'I h h'
+        self.length = 8
+
+    def set_data(self, id: int, ambient_temperature: int, object_temperature: int):
+        self.data = struct.pack(self.format, id, ambient_temperature, object_temperature)
 
 
 class FrameUiCommand(Frame):
@@ -135,7 +149,7 @@ class FrameUiCommand(Frame):
     def __init__(self):
         super(FrameUiCommand, self).__init__()
         self.type = FrameType.UI_COMMAND
-        self.format = 'ccc'
+        self.format = 'c c c'
         self.length = 3
 
     def set_data(self, command: str, params: str, destination: str):
@@ -149,7 +163,7 @@ class FrameBatteryLevel(Frame):
     def __init__(self):
         super(FrameBatteryLevel, self).__init__()
         self.type = FrameType.BATTERY_LEVEL
-        self.format = 'IB'
+        self.format = 'I B'
         self.length = 5
 
     def set_data(self, voltage: int, percentage: int):
@@ -163,7 +177,7 @@ class FrameManualControl(Frame):
     def __init__(self):
         super(FrameManualControl, self).__init__()
         self.type = FrameType.MANUAL_CONTROL
-        self.format = 'cc?'
+        self.format = 'b b ?'
         self.length = 3
 
     def set_data(self, speed: int, rotation: int, brake: bool):
@@ -177,7 +191,7 @@ class FrameMovementControl(Frame):
     def __init__(self):
         super(FrameMovementControl, self).__init__()
         self.type = FrameType.MOVEMENT_CONTROL
-        self.format = 'cc?'
+        self.format = 'b b ?'
         self.length = 3
 
     def set_data(self, speed: int, rotation: int, brake: bool):
@@ -191,7 +205,7 @@ class FrameCoordinate(Frame):
     def __init__(self):
         super(FrameCoordinate, self).__init__()
         self.type = FrameType.COORDINATE
-        self.format = 'hHHBBBBBB??'
+        self.format = 'h H H B B B B B B ? ?'
         self.length = 14
 
     def set_data(self, altitude: int, long_thousandth_sec: int, lat_thousandth_sec: int, lat_deg: int, lat_min: int, lat_sec: int, long_deg: int, long_min: int, long_sec: int, north_south_hemisphere: bool, east_west_hemisphere: bool):
@@ -205,7 +219,7 @@ class FramePathStep(Frame):
     def __init__(self):
         super(FramePathStep, self).__init__()
         self.type = FrameType.PATH_STEP
-        self.format = 'IIHB'
+        self.format = 'I I H B'
         self.length = 11
 
     def set_data(self, x: int, y: int, step_id: int, path_id: int):
@@ -219,7 +233,7 @@ class FrameCommandLog(Frame):
     def __init__(self):
         super(FrameCommandLog, self).__init__()
         self.type = FrameType.COMMAND_LOG
-        self.format = 'Hcc'
+        self.format = 'H c c'
         self.length = 4
 
     def set_data(self, status: int, original_command: str, original_data: str):
@@ -233,10 +247,24 @@ class FrameCommandStatusUpdate(Frame):
     def __init__(self):
         super(FrameCommandStatusUpdate, self).__init__()
         self.type = FrameType.COMMAND_STATUS_UPDATE
-        self.format = 'IH'
+        self.format = 'I H'
         self.length = 6
 
     def set_data(self, cmd_id: int, status: int):
         self.data = struct.pack(self.format, cmd_id, status)
+
+
+class FrameGas(Frame):
+    MEMBERS = ['gas_value', 'gas_id']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameGas, self).__init__()
+        self.type = FrameType.GAS
+        self.format = 'H B'
+        self.length = 3
+
+    def set_data(self, gas_value: int, gas_id: int):
+        self.data = struct.pack(self.format, gas_value, gas_id)
 
 

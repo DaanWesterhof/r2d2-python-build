@@ -11,8 +11,8 @@ or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 
 from common.common import AutoNumber
 
-__maintainer = "Isha Geurtsen"
-__date__ = "2019-05-20 03:44:47.635566"
+__maintainer__ = "Isha Geurtsen"
+__date__ = "2019-05-22 00:39:32.590335"
 __status__ = "Production"
 class FrameType(AutoNumber):
     NONE = ()
@@ -20,15 +20,15 @@ class FrameType(AutoNumber):
     ACTIVITY_LED_STATE = ()
     DISTANCE = ()
     DISPLAY_FILLED_RECTANGLE = ()
-    DISPLAY_8x8_CHARACTER = ()
-    DISPLAY_8x8_CURSOR_CHARACTER = ()
+    DISPLAY_8X8_CHARACTER = ()
+    DISPLAY_8X8_CHARACTER_VIA_CURSOR = ()
     CURSOR_POSITION = ()
     CURSOR_COLOR = ()
     BATTERY_LEVEL = ()
     UI_COMMAND = ()
     MANUAL_CONTROL = ()
     MOVEMENT_CONTROL = ()
-    COORDINATE_STRUCT = ()
+    COORDINATE = ()
     PATH_STEP = ()
     COMMAND_LOG = ()
     COMMAND_STATUS_UPDATE = ()
