@@ -13,8 +13,8 @@ import struct
 from .common import Frame
 from common.frame_enum import FrameType
 
-__maintainer = "Isha Geurtsen"
-__date__ = "2019-05-20 03:44:33.227784"
+__maintainer__ = "Isha Geurtsen"
+__date__ = "2019-05-21 22:50:33.553358"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -79,8 +79,8 @@ class FrameDisplay8x8Character(Frame):
     def __init__(self):
         super(FrameDisplay8x8Character, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER
-        self.format = 'BBBBBs'
-        self.length = 9
+        self.format = 'BBBBB243s'
+        self.length = 248
 
     def set_data(self, x: int, y: int, red: int, green: int, blue: int, characters: str):
         self.data = struct.pack(self.format, x, y, red, green, blue, characters)
@@ -93,8 +93,8 @@ class FrameDisplay8x8CharacterViaCursor(Frame):
     def __init__(self):
         super(FrameDisplay8x8CharacterViaCursor, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
-        self.format = 'Bs'
-        self.length = 5
+        self.format = 'B247s'
+        self.length = 248
 
     def set_data(self, cursor_id: int, characters: str):
         self.data = struct.pack(self.format, cursor_id, characters)
@@ -128,6 +128,20 @@ class FrameCursorColor(Frame):
         self.data = struct.pack(self.format, cursor_id, red, green, blue)
 
 
+class FrameTemperature(Frame):
+    MEMBERS = ['id', 'ambient_temperature', 'object_temperature']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameTemperature, self).__init__()
+        self.type = FrameType.TEMPERATURE
+        self.format = 'Ihh'
+        self.length = 8
+
+    def set_data(self, id: int, ambient_temperature: int, object_temperature: int):
+        self.data = struct.pack(self.format, id, ambient_temperature, object_temperature)
+
+
 class FrameUiCommand(Frame):
     MEMBERS = ['command', 'params', 'destination']
     DESCRIPTION = ""
@@ -140,6 +154,34 @@ class FrameUiCommand(Frame):
 
     def set_data(self, command: str, params: str, destination: str):
         self.data = struct.pack(self.format, command, params, destination)
+
+
+class FrameRobotNames(Frame):
+    MEMBERS = ['names']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameRobotNames, self).__init__()
+        self.type = FrameType.ROBOT_NAMES
+        self.format = 'c'
+        self.length = 1
+
+    def set_data(self, names: str):
+        self.data = struct.pack(self.format, names)
+
+
+class FrameSwarmNames(Frame):
+    MEMBERS = ['names']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameSwarmNames, self).__init__()
+        self.type = FrameType.SWARM_NAMES
+        self.format = 'c'
+        self.length = 1
+
+    def set_data(self, names: str):
+        self.data = struct.pack(self.format, names)
 
 
 class FrameBatteryLevel(Frame):
@@ -238,5 +280,19 @@ class FrameCommandStatusUpdate(Frame):
 
     def set_data(self, cmd_id: int, status: int):
         self.data = struct.pack(self.format, cmd_id, status)
+
+
+class FrameGas(Frame):
+    MEMBERS = ['gas_value', 'gas_id']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameGas, self).__init__()
+        self.type = FrameType.GAS
+        self.format = 'HB'
+        self.length = 3
+
+    def set_data(self, gas_value: int, gas_id: int):
+        self.data = struct.pack(self.format, gas_value, gas_id)
 
 

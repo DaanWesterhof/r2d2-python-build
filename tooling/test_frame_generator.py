@@ -149,3 +149,112 @@ class FrameButtonState(Frame):
 """
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
+
+def test_fixed_length_string():
+    input_string = """
+    /**
+     * Struct to set a character on a display. This shows
+     * a colored character at given location. The character
+     * can be any character from the un-extended
+     * ascii table (characters 0-127)
+     *
+     * For now an alternative to x/y and color based character
+     * drawing.
+     */
+    R2D2_PACK_STRUCT
+    struct frame_display_8x8_character_via_cursor_s {
+        // Targets which cursor to write to. This should be one
+        // your module claimed. The characters will be drawn
+        // from the cursor position as starting location.
+        uint8_t cursor_id;
+
+        // The characters to draw
+        // Last element because of string optimisation
+        char characters[247];
+    };
+"""
+    expected_output = [tooling.frame_generator.Class(
+        name="frame_display_8x8_character_via_cursor_s",
+        members=[
+            "uint8_t cursor_id",
+            "char characters[247]"],
+        doc_string=[])]
+    output = tooling.frame_generator.parse_cpp(input_string)
+    assert expected_output == output
+    input_frame = output
+    expected_output = """
+class FrameDisplay8x8CharacterViaCursor(Frame):
+    MEMBERS = ['cursor_id', 'characters']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameDisplay8x8CharacterViaCursor, self).__init__()
+        self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
+        self.format = 'B247s'
+        self.length = 248
+
+    def set_data(self, cursor_id: int, characters: str):
+        self.data = struct.pack(self.format, cursor_id, characters)
+
+
+"""
+    output = tooling.frame_generator.generate_frame_class(input_frame)
+    assert expected_output == remove_leading_line(output)
+
+def test_variable_length_string():
+    input_string = """
+    /**
+     * ONLY USABLE IN PYTHON TO PYTHON COMMUNICATION
+     *
+     * This is a hack that uses the python frame generator
+     * to create a frame with strings instead of chars.
+     * This conversion does not work in c++. These frames
+     * will be sent to swarm management, they only have to
+     * call the command with given parameters and send it
+     * to the destined robot.
+     *
+     * SwarmUI wiki:
+     * https://github.com/R2D2-2019/R2D2-2019/wiki/Swarm-UI
+     */
+    R2D2_PYTHON_FRAME
+    struct frame_ui_command_s {
+        // name of the frame or json command which we want to
+        // send for evaluation to SMM
+        char command[];
+
+        // parameters for the frame from frame_name
+        char params[];
+
+        // destination is used to tell what robot or swarm to
+        // send the command to
+        char destination[];
+    };
+"""
+    expected_output = [tooling.frame_generator.Class(
+        name="frame_ui_command_s",
+        members=[
+            "char command[]",
+            "char params[]",
+            "char destination[]"],
+        doc_string=[])]
+    output = tooling.frame_generator.parse_cpp(input_string)
+    assert expected_output == output
+    input_frame = output
+    expected_output = """
+class FrameUiCommand(Frame):
+    MEMBERS = ['command', 'params', 'destination']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameUiCommand, self).__init__()
+        self.type = FrameType.UI_COMMAND
+        self.format = '255s255s255s'
+        self.length = 765
+
+    def set_data(self, command: str, params: str, destination: str):
+        self.data = struct.pack(self.format, command, params, destination)
+
+
+"""
+    output = tooling.frame_generator.generate_frame_class(input_frame)
+    assert expected_output == remove_leading_line(output)
