@@ -12,7 +12,7 @@ or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 from common.common import AutoNumber
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-05-22 00:39:32.590335"
+__date__ = "2019-05-23 14:33:46.548343"
 __status__ = "Production"
 class FrameType(AutoNumber):
     NONE = ()
@@ -24,14 +24,22 @@ class FrameType(AutoNumber):
     DISPLAY_8X8_CHARACTER_VIA_CURSOR = ()
     CURSOR_POSITION = ()
     CURSOR_COLOR = ()
-    BATTERY_LEVEL = ()
     UI_COMMAND = ()
+    ROBOT_NAMES = ()
+    SWARM_NAMES = ()
+    BATTERY_LEVEL = ()
     MANUAL_CONTROL = ()
     MOVEMENT_CONTROL = ()
-    COORDINATE = ()
+    COORDINATE_STRUCT = ()
     PATH_STEP = ()
     COMMAND_LOG = ()
     COMMAND_STATUS_UPDATE = ()
+    COMMAND_ID = ()
+    TEMPERATURE = ()
+    GAS = ()
+    REQUEST_MAP_OBSTACLES = ()
+    MAP_INFO = ()
+    MAP_OBSTACLE = ()
     EXTERNAL = ()
     ALL = ()
     COUNT = ()
