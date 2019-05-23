@@ -1,4 +1,4 @@
-"tests tooling/frame_generator"
+"""testcases for tooling/frame_generator.py"""
 
 import tooling.frame_generator
 
@@ -23,6 +23,7 @@ def test_type_table():
         assert isinstance(value.python_type, type)
         assert value.python_type in (str, int, bool, float)
 
+
 def test_parse_frames():
     """tests that frames classsare generated properly"""
     parse_cpp = tooling.frame_generator.parse_cpp
@@ -36,6 +37,7 @@ def test_parse_frames():
 
     output = parse_cpp(input_string)
     assert output == expected_output
+
 
 def test_parse_frame_enum():
     # frame_id.?\{(.+?)\}
@@ -51,6 +53,7 @@ def test_parse_frame_enum():
     expected_output = ['NONE = 0', 'TEST', 'ALL', 'COUNT']
     output = parse_frame_enum(input_string)[0].members
     assert output == expected_output
+
 
 def test_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
@@ -75,6 +78,7 @@ class FrameTestFrame(Frame):
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
 
+
 def test_generate_frame_enums():
     generate_frame_enum = tooling.frame_generator.generate_frame_enum
     Class = tooling.frame_generator.Class
@@ -89,6 +93,7 @@ class FrameType(AutoNumber):
     output = generate_frame_enum(input_frames)
     assert remove_leading_line(output) == expected_output
 
+
 def test_CLI_flag():
     parse_frames = tooling.frame_generator.parse_cpp
     input_string = r"""
@@ -100,10 +105,14 @@ def test_CLI_flag():
         bool pressed;
     };
     """
-    expected_output = [
-        ('frame_button_state_s', ['bool pressed'], ['Packet containing the state of', 'a button.'])]
+    expected_output = [(
+        'frame_button_state_s',
+        ['bool pressed'],
+        ['Packet containing the state of', 'a button.']
+    )]
     output = parse_frames(input_string)
     assert expected_output == output
+
 
 def test_CLI_flag_parse_frames_negative():
     """this test makes sure only the correct c++ doc string gets parsed."""
@@ -120,9 +129,11 @@ def test_CLI_flag_parse_frames_negative():
         bool pressed;
     };
     """
-    expected_output = [('frame_button_state_s', ['bool pressed'], ['GOOD comment'])]
+    expected_output = [
+        ('frame_button_state_s', ['bool pressed'], ['GOOD comment'])]
     output = parse_frames(input_string)
     assert expected_output == output
+
 
 def test_CLI_flag_generate_frame_class():
     generate_frame_class = tooling.frame_generator.generate_frame_class
@@ -190,7 +201,7 @@ class FrameDisplay8x8CharacterViaCursor(Frame):
     def __init__(self):
         super(FrameDisplay8x8CharacterViaCursor, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
-        self.format = 'B247s'
+        self.format = 'B 247s'
         self.length = 248
 
     def set_data(self, cursor_id: int, characters: str):
@@ -248,7 +259,7 @@ class FrameUiCommand(Frame):
     def __init__(self):
         super(FrameUiCommand, self).__init__()
         self.type = FrameType.UI_COMMAND
-        self.format = '255s255s255s'
+        self.format = '255s 255s 255s'
         self.length = 765
 
     def set_data(self, command: str, params: str, destination: str):
