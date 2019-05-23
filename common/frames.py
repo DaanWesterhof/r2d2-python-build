@@ -14,7 +14,7 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-05-21 22:50:33.553358"
+__date__ = "2019-05-23 11:50:59.795950"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -282,6 +282,20 @@ class FrameCommandStatusUpdate(Frame):
         self.data = struct.pack(self.format, cmd_id, status)
 
 
+class FrameCommandId(Frame):
+    MEMBERS = ['command_id']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameCommandId, self).__init__()
+        self.type = FrameType.COMMAND_ID
+        self.format = 'I'
+        self.length = 4
+
+    def set_data(self, command_id: int):
+        self.data = struct.pack(self.format, command_id)
+
+
 class FrameGas(Frame):
     MEMBERS = ['gas_value', 'gas_id']
     DESCRIPTION = ""
@@ -294,5 +308,47 @@ class FrameGas(Frame):
 
     def set_data(self, gas_value: int, gas_id: int):
         self.data = struct.pack(self.format, gas_value, gas_id)
+
+
+class FrameRequestMapObstacles(Frame):
+    MEMBERS = ['path_id']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameRequestMapObstacles, self).__init__()
+        self.type = FrameType.REQUEST_MAP_OBSTACLES
+        self.format = 'B'
+        self.length = 1
+
+    def set_data(self, path_id: int):
+        self.data = struct.pack(self.format, path_id)
+
+
+class FrameMapInfo(Frame):
+    MEMBERS = ['obstacle_count', 'width', 'height', 'path_id', 'map_id']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameMapInfo, self).__init__()
+        self.type = FrameType.MAP_INFO
+        self.format = 'HHHBB'
+        self.length = 8
+
+    def set_data(self, obstacle_count: int, width: int, height: int, path_id: int, map_id: int):
+        self.data = struct.pack(self.format, obstacle_count, width, height, path_id, map_id)
+
+
+class FrameMapObstacle(Frame):
+    MEMBERS = ['x', 'y', 'map_id']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameMapObstacle, self).__init__()
+        self.type = FrameType.MAP_OBSTACLE
+        self.format = 'HHB'
+        self.length = 5
+
+    def set_data(self, x: int, y: int, map_id: int):
+        self.data = struct.pack(self.format, x, y, map_id)
 
 
