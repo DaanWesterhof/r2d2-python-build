@@ -12,7 +12,7 @@ or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 from common.common import AutoNumber
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-05-23 14:33:46.548343"
+__date__ = "2019-05-27 11:58:23.857150"
 __status__ = "Production"
 class FrameType(AutoNumber):
     NONE = ()
@@ -30,7 +30,7 @@ class FrameType(AutoNumber):
     BATTERY_LEVEL = ()
     MANUAL_CONTROL = ()
     MOVEMENT_CONTROL = ()
-    COORDINATE_STRUCT = ()
+    COORDINATE = ()
     PATH_STEP = ()
     COMMAND_LOG = ()
     COMMAND_STATUS_UPDATE = ()
