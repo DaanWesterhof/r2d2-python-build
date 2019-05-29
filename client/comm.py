@@ -8,10 +8,15 @@ import threading
 import os
 from multiprocessing.managers import BaseManager
 from abc import abstractclassmethod, ABC
+import logging
 
 from common.common import Frame, Priority, BusConfig, FrameWrapper
 from common.frame_enum import FrameType
 
+
+FORMAT = '%(asctime)s %(levelname)s: %(message)s'
+logging.basicConfig(format=FORMAT)
+COMM_LOGGER = logging.getLogger("python_build.comm")
 
 class BaseComm(ABC):
     """
@@ -93,7 +98,12 @@ QueueManager.register('tx_queue')
 class Comm(BaseComm):
     def __init__(self):
         self.manager = QueueManager(address=BusConfig.ADDRESS, authkey=BusConfig.AUTH_KEY)
-        self.manager.connect()
+        try:
+            self.manager.connect()
+        except ConnectionRefusedError:
+            COMM_LOGGER.fatal("could not connect to python bus, did you start manager/manager.py?", exc_info=True)
+            COMM_LOGGER.fatal("gracefull shutdown because of https://github.com/R2D2-2019/r2d2-python-build/issues/56")
+            exit()
 
         # Queues that refer to the bus process
         self.rx_queue = self.manager.rx_queue()
