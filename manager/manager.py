@@ -5,16 +5,14 @@ this program hosts the python internal bus.
 see client/comm.py for the interface
 """
 
-from sys import platform
 import os
 import copy
 import threading
-import signal
-from time import sleep
+import time
 from multiprocessing.managers import BaseManager
 from multiprocessing import Lock
 from common.common import BusConfig
-
+from common.signals import register_signal_callback
 
 class QueueManager(BaseManager):
     """
@@ -127,7 +125,7 @@ class BusManager:
 
         self.processing_lock.release()
 
-    def start(self):
+    def __enter__(self):
         """
         Starts the manager and exposes a central bus.
 
@@ -138,7 +136,7 @@ class BusManager:
         self.manager_thread.start()
 
         # Wait for the manager to start up...
-        sleep(0.5)
+        time.sleep(0.5)
 
         print("Starting consumer...")
 
@@ -146,11 +144,19 @@ class BusManager:
         pusher.connect()
 
         print("Init done, working...")
+        return self
 
+    def process(self):
+        """processes both the receive and the send queue until stop is called"""
         while not self.should_stop:
             self._process_tx()
             self._process_rx()
-            sleep(0.01)
+            time.sleep(0.01)
+
+    def __exit__(self, *args):
+        self.should_stop = True
+        self.server.stop_event.set()
+        self.manager_thread.join()
 
     def stop(self):
         """
@@ -159,25 +165,8 @@ class BusManager:
         :return:
         """
         self.should_stop = True
-        self.server.stop_event.set()
-        self.manager_thread.join()
 
-bus_manager = BusManager()
-
-
-def stop(signal, frame):
-    """
-    Stops the bus manager.
-
-    :return:
-    """
-    bus_manager.stop()
-
-
-signal.signal(signal.SIGINT, stop)
-signal.signal(signal.SIGTERM, stop)
-
-if platform != "win32":
-    signal.signal(signal.SIGQUIT, stop)
-
-bus_manager.start()
+if __name__ == "__main__":
+    with BusManager() as bus_manager:
+        register_signal_callback(bus_manager.stop)
+        bus_manager.process()
