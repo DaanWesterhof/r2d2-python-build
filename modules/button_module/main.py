@@ -3,8 +3,8 @@
 from time import sleep
 from sys import platform
 from random import randint
-import signal
 
+from common.signals import register_signal_callback
 from client.comm import Comm
 from modules.button_module.module.mod import Module
 
@@ -34,26 +34,13 @@ def main():
     module = Module(Comm(), TestButton())
     print("Module created...")
 
-    while not SHOULD_STOP:
-        module.process()
-        sleep(0.05)
+    register_signal_callback(module.stop)
 
-    module.stop()
+    with module:
+        while not module.stopped:
+            module.process()
+            sleep(0.05)
 
-
-def stop(signal, frame):
-    """
-    Stops the process and  stops the listening to incoming frames
-    """
-    global SHOULD_STOP
-    SHOULD_STOP = True
-
-
-signal.signal(signal.SIGINT, stop)
-signal.signal(signal.SIGTERM, stop)
-
-if platform != "win32":
-    signal.signal(signal.SIGQUIT, stop)
 
 if __name__ == "__main__":
     main()
