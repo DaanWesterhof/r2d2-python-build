@@ -1,41 +1,21 @@
 "this module is a template"
-from time import sleep
-from sys import platform
-import signal
+import time
 
+from common.signals import register_signal_callback
 from client.comm import Comm
 from modules.template.module.mod import Module
 
-SHOULD_STOP = False
-
-
 def main():
+    "entry point of the application"
 
     print("Starting application...\n")
     module = Module(Comm())
+    register_signal_callback(module.stop)
     print("Module created...")
-
-    while not SHOULD_STOP:
-        module.process()
-        sleep(0.05)
-
-    module.stop()
-
-
-def stop(signal, frame):
-    """
-    Stops the process and  stops the listening to incoming frames
-    :return:
-    """
-    global SHOULD_STOP
-    SHOULD_STOP = True
-
-
-signal.signal(signal.SIGINT, stop)
-signal.signal(signal.SIGTERM, stop)
-
-if platform != "win32":
-    signal.signal(signal.SIGQUIT, stop)
+    with module:
+        while not module.stopped:
+            module.process()
+            time.sleep(0.05)
 
 if __name__ == "__main__":
     main()
