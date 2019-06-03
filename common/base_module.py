@@ -20,6 +20,12 @@ class BaseModule(ABC):
 
     @abstractmethod
     def process(self):
+        """the process function processes all outstanding work.
+        Just like the C++ internal communication module,
+
+        Please note: if you don't process data often enough, you might miss some frames.
+        It is dependent on the module if this is a problem or not.
+        """
         assert not self.stopped
         raise NotImplementedError
 
