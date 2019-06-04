@@ -10,6 +10,8 @@ import urllib.request
 import datetime
 from pathlib import Path
 from collections import namedtuple
+import tooling.enum_parser as enum_parser
+
 
 REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
 FRAME_REGEX = re.compile(
@@ -229,7 +231,17 @@ def _path(loc, filename):
 
 if __name__ == "__main__":
     ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
+    enums = enum_parser.get_enum_definitions()
+    enum: enum_parser.CxxEnum
+    for enum in enums:
+        if enum.inner_type not in TYPE_TABLE.keys():
+            continue
+        TYPE_TABLE[enum.name] = TYPE_TABLE[enum.inner_type]
+
+
     with open(_path('common', 'frames.py'), 'w') as frames_file:
         frames_file.write(generate_frame_class(parse_cpp(FRAME_TEXT)))
     with open(_path('common', 'frame_enum.py'), 'w') as enum_file:
         enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))
+
+
