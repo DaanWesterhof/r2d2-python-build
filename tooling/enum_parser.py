@@ -57,6 +57,12 @@ def get_enum_definitions():
     for enum_string in enum_strings:
         yield get_enum_definition(enum_string)
 
+
+
+def convert_to_python(enum: CxxEnum):
+    enum
+
+
 if __name__ == "__main__":
     definitions = get_enum_definitions()
     for definition in definitions:

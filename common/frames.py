@@ -14,7 +14,7 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-06-04 17:09:01.145127"
+__date__ = "2019-06-04 21:17:00.042699"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -401,7 +401,7 @@ class FrameEndEffectorType(Frame):
     def __init__(self):
         super(FrameEndEffectorType, self).__init__()
         self.type = FrameType.END_EFFECTOR_TYPE
-        self.format = 'c'
+        self.format = 'B'
         self.length = 1
 
     def set_data(self, type: int):

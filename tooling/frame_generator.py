@@ -11,6 +11,7 @@ import datetime
 from pathlib import Path
 from collections import namedtuple
 import tooling.enum_parser as enum_parser
+import tooling.enum_writer as enum_writer
 
 
 REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
@@ -61,8 +62,6 @@ TYPE_TABLE = {
     'void*':                CppType(format='P', size=4, python_type=int),
     'void *':               CppType(format='P', size=4, python_type=int),
 }
-
-
 def parse_cpp(input_string: str, regex: re.Pattern = FRAME_REGEX) -> ...:
     """
     this method parses the input_string using the regex pattern
@@ -231,7 +230,7 @@ def _path(loc, filename):
 
 if __name__ == "__main__":
     ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
-    enums = enum_parser.get_enum_definitions()
+    enums = list(enum_parser.get_enum_definitions())
     enum: enum_parser.CxxEnum
     for enum in enums:
         if enum.inner_type not in TYPE_TABLE.keys():
@@ -241,7 +240,10 @@ if __name__ == "__main__":
 
     with open(_path('common', 'frames.py'), 'w') as frames_file:
         frames_file.write(generate_frame_class(parse_cpp(FRAME_TEXT)))
-    with open(_path('common', 'frame_enum.py'), 'w') as enum_file:
-        enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))
+    with open(_path('common', 'frame_enum.py'), 'w') as frame_enum_file:
+        frame_enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))
 
-
+    with open(_path('common', 'enums.py'), 'w') as enum_file:
+        enum_text_list = [enum_writer.convert_enum_to_python(e) for e in enums]
+        file_content = enum_writer.convert_enums_to_fileformat(enum_text_list)
+        enum_file.write(file_content)
