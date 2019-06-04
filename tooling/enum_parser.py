@@ -11,6 +11,11 @@ class CxxEnum:
     def __repr__(self):
         return f"{self.name} : {self.inner_type} {self.items.__repr__()}"
 
+    def __iter__(self) -> str:
+        for item in self.items:
+            yield item
+
+    
 
 
 
