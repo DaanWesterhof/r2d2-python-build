@@ -4,21 +4,41 @@ this module contains configuration and base Frame definitions
 import struct
 from enum import Enum
 import os
+import socket
+from dataclasses import dataclass
+import logging
 
+@dataclass
+class Address():
+    """full ip:port address for use in socket's
+    Note: socket expects a tuple type.
+    either cast this Address to a tuple, or construct a tuple using parts of this address
+    """
+    ip: str
+    port: int
+    def tuple(self) -> tuple:
+        """returns Address represented as a tuple"""
+        return (self.ip, self.port)
+
+@dataclass
 class BusConfig:
-    "this class contains the configuration options for the bus"
-    AUTH_KEY = b'r2d2'
-    PORT = 5000
-    if os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', False):
-        try:
-            remote_ip = socket.gethostbyname( 'server_manager' )
-        except socket.gaierror:
-            print('Hostname could not be resolved. Falling back to default')
-            remote_ip = '172.18.0.2'
-        ADDRESS = (remote_ip, PORT)
-    else:
-        ADDRESS = ('127.0.0.1', PORT)
+    """this class contains all the configuration to connect with the python bus"""
+    AUTH_KEY: bytes
+    ADDRESS: Address
 
+def get_bus_config(inside_docker_container):
+    """get_bus_config returns the correct """
+    default = BusConfig(AUTH_KEY=b'r2d2', ADDRESS=Address('127.0.0.1', 5000))
+    if inside_docker_container is False:
+        return default
+    logger = logging.getLogger("common.busconfig")
+    logger.info("inside of docker container, using special bus config")
+    try:
+        address = Address(socket.gethostbyname("server_manager"), default.ADDRESS.port)
+    except socket.gaierror:
+        logger.warning("Hostname could not be resolved. Falling back to default")
+        address = Address("172.18.0.2", default.ADDRESS.port)
+    return BusConfig(AUTH_KEY=default.AUTH_KEY, ADDRESS=address)
 
 class AutoNumber(Enum):
     """this enum class automatily generates """
@@ -178,3 +198,6 @@ class FrameWrapper:
         self.frame = frame
         self.pid = pid
         self.timestamp = timestamp
+
+# global settings
+BUSCONFIG = get_bus_config(os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', False))
