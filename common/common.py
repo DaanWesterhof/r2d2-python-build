@@ -2,11 +2,11 @@
 this module contains configuration and base Frame definitions
 """
 import struct
-from enum import Enum
 import os
 import socket
 from dataclasses import dataclass
 import logging
+from enum import Enum
 
 @dataclass
 class Address():
@@ -45,7 +45,7 @@ class AutoNumber(Enum):
     def __new__(cls):
         value = len(cls.__members__)  # note no + 1
         new_object = object.__new__(cls)
-        new_object._value_ = value
+        new_object._value_ = value #pylint: disable=protected-access
         return new_object
 
 
@@ -60,6 +60,9 @@ class Priority(Enum):
 
 
 class Frame:
+    """Base data Frame
+    this class gets subclassed by data frames in common/frames.py
+    """
     # This will be overwritten by child classes
     MEMBERS = []
 
@@ -80,7 +83,7 @@ class Frame:
         except ValueError:
             raise KeyError
 
-    def _pack_from_tuple(self, tuple) -> None:
+    def _pack_from_tuple(self, tuple_) -> None:
         """
         This helper function will pack the data in the tuple
         into the data member of the Frame.
@@ -89,7 +92,7 @@ class Frame:
         :return:
         """
 
-        self.data = struct.pack(self.format, *tuple)
+        self.data = struct.pack(self.format, *tuple_)
 
     def __init__(self):
         # Set in child class
@@ -177,9 +180,15 @@ class Frame:
         return key in self.MEMBERS
 
     def set_data(self, data):
+        """this method should be implemented in the subclass
+        it should set self.data to the result of struct.pack(self.data, ...)
+        where ... is dependant on the frame itself
+        TODO: make this a general function so subclasses need not reinvent the wheel
+        """
         pass
 
     def get_data(self):
+        """this method returns a tuple of subclass dependant data"""
         if self.length == 0:
             return None
 
@@ -192,12 +201,12 @@ class Frame:
 
         return output
 
-
+@dataclass
 class FrameWrapper:
-    def __init__(self, frame, pid, timestamp):
-        self.frame = frame
-        self.pid = pid
-        self.timestamp = timestamp
+    """this class adds meta data to a Frame"""
+    frame: Frame
+    pid: int
+    timestamp: int
 
 # global settings
 BUSCONFIG = get_bus_config(os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', False))
