@@ -1,20 +1,21 @@
 
-#! python
-""" this generated file defines Frames
+    #! python
 
-it is based on the definitons of https://raw.githubusercontent.com/R2D2-2019/internal_communication/master/code/headers/frame_types.hpp
+    """ this generated file defines Frames
 
-if you have a question or a problem.
-please make a github issue on https://github.com/R2D2-2019/r2d2-python-build/issues/new
-or look at https://github.com/R2D2-2019/r2d2-python-build#faq
-"""
+    it is based on the definitons of https://raw.githubusercontent.com/R2D2-2019/internal_communication/master/code/headers/frame_types.hpp
 
-from common.common import AutoNumber
+    if you have a question or a problem.
+    please make a github issue on https://github.com/R2D2-2019/r2d2-python-build/issues/new
+    or look at https://github.com/R2D2-2019/r2d2-python-build#faq
+    """
 
-__maintainer__ = "Sebastiaan Saarloos"
-__date__ = "2019-06-04 17:09:01.153106"
-__status__ = "Production"
+    from common.common import AutoNumber
 
+    __maintainer__ = "Sebastiaan Saarloos"
+    __date__ = "2019-06-05 22:24:05.932205"
+    __status__ = "Production"
+    
 class gas_type(AutoNumber): 
     LPG = ()
     CO = ()
