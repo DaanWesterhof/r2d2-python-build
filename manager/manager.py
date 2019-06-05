@@ -13,7 +13,7 @@ import signal
 from time import sleep
 from multiprocessing.managers import BaseManager
 from multiprocessing import Lock
-from common.common import BusConfig
+from common.common import BUSCONFIG
 
 
 class QueueManager(BaseManager):
@@ -76,7 +76,7 @@ class BusManager:
         QueueManager.register('rx_queue', callable=lambda: self.rx_queue)
         # Register the queue for sending frames to modules
         QueueManager.register('tx_queue', callable=lambda: self.tx_queue)
-        self.manager = QueueManager(address=('', BusConfig.PORT), authkey=BusConfig.AUTH_KEY)
+        self.manager = QueueManager(address=('', BUSCONFIG.ADDRESS.port), authkey=BUSCONFIG.AUTH_KEY)
         self.server = self.manager.get_server()
 
         print("Start serving!")
@@ -142,7 +142,7 @@ class BusManager:
 
         print("Starting consumer...")
 
-        pusher = QueueManager(address=BusConfig.ADDRESS, authkey=BusConfig.AUTH_KEY)
+        pusher = QueueManager(address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
         pusher.connect()
 
         print("Init done, working...")

@@ -9,7 +9,7 @@ import os
 from multiprocessing.managers import BaseManager
 from abc import abstractmethod, ABC
 
-from common.common import Frame, Priority, BusConfig, FrameWrapper
+from common.common import Frame, Priority, BUSCONFIG, FrameWrapper
 from common.frame_enum import FrameType
 
 
@@ -92,7 +92,7 @@ QueueManager.register('tx_queue')
 
 class Comm(BaseComm):
     def __init__(self):
-        self.manager = QueueManager(address=BusConfig.ADDRESS, authkey=BusConfig.AUTH_KEY)
+        self.manager = QueueManager(address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
         self.manager.connect()
 
         # Queues that refer to the bus process
