@@ -14,7 +14,7 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-06-05 22:24:05.922303"
+__date__ = "2019-05-23 14:33:46.542359"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -63,23 +63,9 @@ class FrameDisplayRectangle(Frame):
     DESCRIPTION = ""
 
     def __init__(self):
-        super(FrameDisplayRectangle, self).__init__()
-        self.type = FrameType.DISPLAY_RECTANGLE
-        self.format = 'BBBB?BBB'
-        self.length = 8
-
-    def set_data(self, x: int, y: int, width: int, height: int, filled: bool, red: int, green: int, blue: int):
-        self.data = struct.pack(self.format, x, y, width, height, filled, red, green, blue)
-
-
-class FrameDisplayRectangleViaCursor(Frame):
-    MEMBERS = ['cursor_id', 'width', 'height', 'filled', 'red', 'green', 'blue']
-    DESCRIPTION = ""
-
-    def __init__(self):
-        super(FrameDisplayRectangleViaCursor, self).__init__()
-        self.type = FrameType.DISPLAY_RECTANGLE_VIA_CURSOR
-        self.format = 'BBB?BBB'
+        super(FrameDisplayFilledRectangle, self).__init__()
+        self.type = FrameType.DISPLAY_FILLED_RECTANGLE
+        self.format = 'B B B B B B B'
         self.length = 7
 
     def set_data(self, cursor_id: int, width: int, height: int, filled: bool, red: int, green: int, blue: int):
@@ -93,7 +79,7 @@ class FrameDisplay8x8Character(Frame):
     def __init__(self):
         super(FrameDisplay8x8Character, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER
-        self.format = 'BBBBB243s'
+        self.format = 'B B B B B 243s'
         self.length = 248
 
     def set_data(self, x: int, y: int, red: int, green: int, blue: int, characters: str):
@@ -107,7 +93,7 @@ class FrameDisplay8x8CharacterViaCursor(Frame):
     def __init__(self):
         super(FrameDisplay8x8CharacterViaCursor, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
-        self.format = 'B247s'
+        self.format = 'B 247s'
         self.length = 248
 
     def set_data(self, cursor_id: int, characters: str):
@@ -149,7 +135,7 @@ class FrameCursorPosition(Frame):
     def __init__(self):
         super(FrameCursorPosition, self).__init__()
         self.type = FrameType.CURSOR_POSITION
-        self.format = 'BBB'
+        self.format = 'B B B'
         self.length = 3
 
     def set_data(self, cursor_id: int, cursor_x: int, cursor_y: int):
@@ -163,7 +149,7 @@ class FrameCursorColor(Frame):
     def __init__(self):
         super(FrameCursorColor, self).__init__()
         self.type = FrameType.CURSOR_COLOR
-        self.format = 'BBBB'
+        self.format = 'B B B B'
         self.length = 4
 
     def set_data(self, cursor_id: int, red: int, green: int, blue: int):
@@ -177,7 +163,7 @@ class FrameTemperature(Frame):
     def __init__(self):
         super(FrameTemperature, self).__init__()
         self.type = FrameType.TEMPERATURE
-        self.format = 'Ihh'
+        self.format = 'I h h'
         self.length = 8
 
     def set_data(self, id: int, ambient_temperature: int, object_temperature: int):
@@ -191,7 +177,7 @@ class FrameUiCommand(Frame):
     def __init__(self):
         super(FrameUiCommand, self).__init__()
         self.type = FrameType.UI_COMMAND
-        self.format = 'ccc'
+        self.format = 'c c c'
         self.length = 3
 
     def set_data(self, command: str, params: str, destination: str):
@@ -233,7 +219,7 @@ class FrameBatteryLevel(Frame):
     def __init__(self):
         super(FrameBatteryLevel, self).__init__()
         self.type = FrameType.BATTERY_LEVEL
-        self.format = 'IB'
+        self.format = 'I B'
         self.length = 5
 
     def set_data(self, voltage: int, percentage: int):
@@ -247,7 +233,7 @@ class FrameManualControl(Frame):
     def __init__(self):
         super(FrameManualControl, self).__init__()
         self.type = FrameType.MANUAL_CONTROL
-        self.format = 'cc?'
+        self.format = 'b b ?'
         self.length = 3
 
     def set_data(self, speed: int, rotation: int, brake: bool):
@@ -261,7 +247,7 @@ class FrameMovementControl(Frame):
     def __init__(self):
         super(FrameMovementControl, self).__init__()
         self.type = FrameType.MOVEMENT_CONTROL
-        self.format = 'cc?'
+        self.format = 'b b ?'
         self.length = 3
 
     def set_data(self, speed: int, rotation: int, brake: bool):
@@ -275,9 +261,9 @@ class FrameCoordinate(Frame):
     def __init__(self):
         super(FrameCoordinate, self).__init__()
         self.type = FrameType.COORDINATE
-        self.format = 'hHHBBBB??'
-        self.length = 12
-
+        self.format = 'h H H B B B B B B ? ?'
+        self.length = 14
+        
     def set_data(self, altitude: int, long_tenthousandth_min: int, lat_tenthousandth_min: int, lat_deg: int, lat_min: int, long_deg: int, long_min: int, north_south_hemisphere: bool, east_west_hemisphere: bool):
         self.data = struct.pack(self.format, altitude, long_tenthousandth_min, lat_tenthousandth_min, lat_deg, lat_min, long_deg, long_min, north_south_hemisphere, east_west_hemisphere)
 
@@ -289,7 +275,7 @@ class FramePathStep(Frame):
     def __init__(self):
         super(FramePathStep, self).__init__()
         self.type = FrameType.PATH_STEP
-        self.format = 'IIHB'
+        self.format = 'I I H B'
         self.length = 11
 
     def set_data(self, x: int, y: int, step_id: int, path_id: int):
@@ -303,7 +289,7 @@ class FrameCommandLog(Frame):
     def __init__(self):
         super(FrameCommandLog, self).__init__()
         self.type = FrameType.COMMAND_LOG
-        self.format = 'Hcc'
+        self.format = 'H c c'
         self.length = 4
 
     def set_data(self, status: int, original_command: str, original_data: str):
@@ -317,7 +303,7 @@ class FrameCommandStatusUpdate(Frame):
     def __init__(self):
         super(FrameCommandStatusUpdate, self).__init__()
         self.type = FrameType.COMMAND_STATUS_UPDATE
-        self.format = 'IH'
+        self.format = 'I H'
         self.length = 6
 
     def set_data(self, cmd_id: int, status: int):
@@ -345,7 +331,7 @@ class FrameGas(Frame):
     def __init__(self):
         super(FrameGas, self).__init__()
         self.type = FrameType.GAS
-        self.format = 'HB'
+        self.format = 'H B'
         self.length = 3
 
     def set_data(self, gas_value: int, gas_id: int):
@@ -373,7 +359,7 @@ class FrameMapInfo(Frame):
     def __init__(self):
         super(FrameMapInfo, self).__init__()
         self.type = FrameType.MAP_INFO
-        self.format = 'HHHBB'
+        self.format = 'H H H B B'
         self.length = 8
 
     def set_data(self, obstacle_count: int, width: int, height: int, path_id: int, map_id: int):
@@ -387,7 +373,7 @@ class FrameMapObstacle(Frame):
     def __init__(self):
         super(FrameMapObstacle, self).__init__()
         self.type = FrameType.MAP_OBSTACLE
-        self.format = 'HHB'
+        self.format = 'H H B'
         self.length = 5
 
     def set_data(self, x: int, y: int, map_id: int):

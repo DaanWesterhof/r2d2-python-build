@@ -7,7 +7,7 @@ from time import time
 import threading
 import os
 from multiprocessing.managers import BaseManager
-from abc import abstractclassmethod, ABC
+from abc import abstractmethod, ABC
 
 from common.common import Frame, Priority, BusConfig, FrameWrapper
 from common.frame_enum import FrameType
@@ -17,7 +17,7 @@ class BaseComm(ABC):
     """
     Interface for communication classes.
     """
-    @abstractclassmethod
+    @abstractmethod
     def listen_for(self, comm_listen_for: list) -> None:
         """
         Specify what frame types this modules
@@ -27,7 +27,7 @@ class BaseComm(ABC):
         :return:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def accepts_frame(self, frame_type: FrameType) -> bool:
         """
         Does this modules accept the given
@@ -37,7 +37,7 @@ class BaseComm(ABC):
         :return:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def request(self, frame_type: FrameType, prio: Priority = Priority.NORMAL) -> None:
         """
         Request data from the bus
@@ -47,7 +47,7 @@ class BaseComm(ABC):
         :return:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def send(self, frame, prio: Priority = Priority.NORMAL) -> None:
         """
         Put a frame on the bus.
@@ -57,7 +57,7 @@ class BaseComm(ABC):
         :param prio:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def has_data(self) -> bool:
         """
         Whether there is data available for
@@ -66,7 +66,7 @@ class BaseComm(ABC):
         :return:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def get_data(self) -> Frame:
         """
         Non-blocking, will throw the Empty
@@ -77,7 +77,7 @@ class BaseComm(ABC):
         :return: common.Frame
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def stop(self) -> None:
         pass
 
