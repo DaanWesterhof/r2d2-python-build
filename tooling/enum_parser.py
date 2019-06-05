@@ -37,7 +37,7 @@ def get_enum_strings(file_contents: str) -> list:
     "Iterates over all the matches, and will yield returned"
     for item in pattern.finditer(file_contents):
         "Yield, means: give back a single item, go further a new item is requested"
-        yield item.replace("\n", "")
+        yield item.group(0).replace("\n", "")
 
 
 def get_enum_definition(enum_string: str) -> CxxEnum:
@@ -58,7 +58,7 @@ def get_github_file(repository: str, branch: str, file: str):
             .read()
             .decode("utf-8")
     )
-def get_enum_definitions() -> list[CxxEnum]:
+def get_enum_definitions() -> list:
     """Easy to call function to get all enums defined inside the frame_enums.hpp defined inside the external communications file """
     "Get the file from GitHub"
     file_content = get_github_file("internal_communication", "master", "code/headers/frame_enums.hpp")
