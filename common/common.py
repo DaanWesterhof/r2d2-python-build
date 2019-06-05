@@ -3,12 +3,21 @@ this module contains configuration and base Frame definitions
 """
 import struct
 from enum import Enum
+import os
 
 class BusConfig:
     "this class contains the configuration options for the bus"
     AUTH_KEY = b'r2d2'
     PORT = 5000
-    ADDRESS = ('127.0.0.1', PORT)
+    if os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', False):
+        try:
+            remote_ip = socket.gethostbyname( 'server_manager' )
+        except socket.gaierror:
+            print('Hostname could not be resolved. Falling back to default')
+            remote_ip = '172.18.0.2'
+        ADDRESS = (remote_ip, PORT)
+    else:
+        ADDRESS = ('127.0.0.1', PORT)
 
 
 class AutoNumber(Enum):
