@@ -3,15 +3,20 @@ this module provides the API to the python bus
 """
 
 from queue import Queue
-from time import time
+from time import time, sleep
 import threading
 import os
 from multiprocessing.managers import BaseManager
+import logging
 from abc import abstractmethod, ABC
 
-from common.common import Frame, Priority, BusConfig, FrameWrapper
+from common.common import Frame, Priority, BUSCONFIG, FrameWrapper
 from common.frame_enum import FrameType
 
+
+FORMAT = '%(asctime)s %(levelname)s: %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.INFO)
+COMM_LOGGER = logging.getLogger("python_build.comm")
 
 class BaseComm(ABC):
     """
@@ -92,8 +97,22 @@ QueueManager.register('tx_queue')
 
 class Comm(BaseComm):
     def __init__(self):
-        self.manager = QueueManager(address=BusConfig.ADDRESS, authkey=BusConfig.AUTH_KEY)
-        self.manager.connect()
+        self.manager = QueueManager(address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
+
+        connection_tries = 0
+
+        while True:
+            try:
+                connection_tries += 1
+                self.manager.connect()
+            except ConnectionRefusedError:
+                COMM_LOGGER.warning("Could not connect to Python bus. Trying to reconnect in 10 sec")    
+                if connection_tries == 1:
+                    COMM_LOGGER.warning("Did you start manager/manager.py?")
+                sleep(10)
+            else:
+                COMM_LOGGER.info("Connected to Python bus succesfully.")
+                break
 
         # Queues that refer to the bus process
         self.rx_queue = self.manager.rx_queue()
