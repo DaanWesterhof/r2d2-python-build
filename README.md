@@ -207,7 +207,7 @@ The `manager` can be started in the background and modules can connect to it, pr
 
 ### loggging
 
-Becouse the python build will be run on a docker container, all loggging is done using the logging module.
+Because the python build will be run on a docker container, all loggging is done using the logging module.
 
 logs will be writen to `python_build.log` and to the screen.
 
