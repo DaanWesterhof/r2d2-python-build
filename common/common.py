@@ -7,6 +7,7 @@ import socket
 from dataclasses import dataclass
 import logging
 from enum import Enum
+import common.config
 
 @dataclass
 class Address():
@@ -28,10 +29,11 @@ class BusConfig:
 
 def get_bus_config(inside_docker_container):
     """get_bus_config returns the correct """
+    logger = logging.getLogger("common.busconfig")
     default = BusConfig(AUTH_KEY=b'r2d2', ADDRESS=Address('127.0.0.1', 5000))
     if inside_docker_container is False:
+        logger.info("using default bus config")
         return default
-    logger = logging.getLogger("common.busconfig")
     logger.info("inside of docker container, using special bus config")
     try:
         address = Address(socket.gethostbyname("server_manager"), default.ADDRESS.port)
