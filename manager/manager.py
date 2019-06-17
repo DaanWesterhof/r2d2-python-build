@@ -10,11 +10,12 @@ import os
 import copy
 import threading
 import signal
+import logging
 from time import sleep
 from multiprocessing.managers import BaseManager
 from multiprocessing import Lock
 from common.common import BUSCONFIG
-
+import common.config
 
 class QueueManager(BaseManager):
     """
@@ -70,8 +71,7 @@ class BusManager:
 
         :return:
         """
-
-        print("Starting queue manager...")
+        _LOGGER.info("Starting queue manager...")
         # Register the queue for receiving frames from modules
         QueueManager.register('rx_queue', callable=lambda: self.rx_queue)
         # Register the queue for sending frames to modules
@@ -79,7 +79,7 @@ class BusManager:
         self.manager = QueueManager(address=('', BUSCONFIG.ADDRESS.port), authkey=BUSCONFIG.AUTH_KEY)
         self.server = self.manager.get_server()
 
-        print("Start serving!")
+        _LOGGER.info("Start serving!")
         self.server.serve_forever()
 
     def _process_tx(self):
@@ -103,8 +103,7 @@ class BusManager:
             # Distribute frame internally
             self.rx_queue.append(frame)
 
-            #print(frame)  # 'send'
-            print()
+            _LOGGER.debug(frame)  # 'send'
 
     def _process_rx(self):
         """
@@ -133,19 +132,19 @@ class BusManager:
 
         :return:
         """
-        print("Starting...")
+        _LOGGER.info("Starting...")
 
         self.manager_thread.start()
 
         # Wait for the manager to start up...
         sleep(0.5)
 
-        print("Starting consumer...")
+        _LOGGER.info("Starting consumer...")
 
         pusher = QueueManager(address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
         pusher.connect()
 
-        print("Init done, working...")
+        _LOGGER.info("Init done, working...")
 
         while not self.should_stop:
             self._process_tx()
@@ -164,6 +163,7 @@ class BusManager:
 
 bus_manager = BusManager()
 
+_LOGGER = logging.getLogger("manager.manager")
 
 def stop(signal, frame):
     """

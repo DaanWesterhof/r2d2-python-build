@@ -10,6 +10,7 @@ from multiprocessing.managers import BaseManager
 import logging
 from abc import abstractmethod, ABC
 
+import common.config
 from common.common import Frame, Priority, BUSCONFIG, FrameWrapper
 from common.frame_enum import FrameType
 
@@ -140,7 +141,7 @@ class Comm(BaseComm):
         :return:
         """
 
-        print("Starting connection worker...")
+        COMM_LOGGER.info("Starting connection worker...")
 
         while not self.should_stop:
             for frame in self.rx_queue._getvalue():

@@ -205,6 +205,34 @@ The system supports Linux and Windows. While Python itself is multiplatform, qui
 ### Local development
 The `manager` can be started in the background and modules can connect to it, provided the port is free on manager start.
 
+### loggging
+
+Because the python build will be run on a docker container, all loggging is done using the logging module.
+
+logs will be writen to `python_build.log` and to the screen.
+
+if you want to change what gets logged, where it gets logged, or the format of the logging. you need call `logging.basicConfig` before you import modules form the python build
+
+```python
+# test.py
+import logging
+import common.config
+
+LOGGER = logging.getLogger("custom.logger")
+if __name__ == "__main__":
+    LOGGER.info("hello world")
+    thing = "something"
+    LOGGER.warning("%s is about to go wrong", thing)
+    LOGGER.critical("%s has gone wrong", thing)
+```
+
+```powershell
+> python test.py
+2019-06-17 15:12:21,849:INFO:custom.logger:hello world
+2019-06-17 15:12:21,850:WARNING:custom.logger:something is about to go wrong
+2019-06-17 15:12:21,850:CRITICAL:custom.logger:something has gone wrong
+```
+
 ## Process based 
 
 ### Overview
