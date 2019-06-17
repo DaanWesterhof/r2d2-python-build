@@ -31,14 +31,16 @@ def register_signal_callback(callback):
 def __handle_signal(signal_num, stack_frame):
     """internal method, called when a signal is received.
     when the signal remains unhandled, calls __stop"""
-    logging.critical("received signal %s", signal.Signals(signal_num).name)
+    logging.debug("received signal %s", signal.Signals(signal_num).name)
     for signal_handler in _SIGNAL_HANDLERS:
         if signal_handler(signal_num, stack_frame):
+            logging.debug("handled signal %s", signal.Signals(signal_num).name)
             return
     __stop(signal_num)
 
 def __stop(signal_num):
     "internal method, called when a signal remains unhandled. "
+    logging.critical("unhandled signal %s", signal.Signals(signal_num).name)
     for callback in _CALLBACKS:
         callback()
     exit(signal_num)
