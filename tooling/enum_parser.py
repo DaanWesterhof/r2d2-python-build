@@ -29,9 +29,9 @@ class CxxEnum:
 def get_enum_strings(file_contents: str) -> list:
     """Scrapes all the enum strings from a given string"""
     # Remove all comments from the file.
-    file_contents = re.sub("//.*\n", "", file_contents)
+    file_contents = re.sub(r"//.*\n", "", file_contents)
     # Remove redundant spaces
-    file_contents = re.sub("\s+", " ", file_contents)
+    file_contents = re.sub(r"\s+", " ", file_contents)
     # enum class regular expression
     pattern = re.compile("enum class\\s*\\w+\\s*\\:\\s*\\w+\\s*\\{[^\\{\\}]+\\};")
     # Iterates over all the matches, and will yield returned
@@ -43,11 +43,11 @@ def get_enum_strings(file_contents: str) -> list:
 def get_enum_definition(enum_string: str) -> CxxEnum:
     """Converts a enum definition represented as a string to a CXX enum object"""
     # Get the name of the enum
-    name = re.findall("(?<=enum class )\w+", enum_string)[0]
+    name = re.findall(r"(?<=enum class )\w+", enum_string)[0]
     # Get the defined type of the enum
-    inner_type = re.findall(":\s*(\w+)", enum_string)[0]
+    inner_type = re.findall(r":\s*(\w+)", enum_string)[0]
     # Get all the items of that are defined inside the enum class
-    inner_items = re.findall("\{([^{}]+)\}", enum_string)[0].replace(" ", "").split(",")
+    inner_items = re.findall(r"\{([^{}]+)\}", enum_string)[0].replace(" ", "").split(",")
     return CxxEnum(name, inner_type, inner_items)
 
 def get_github_file(repository: str, branch: str, file: str):
