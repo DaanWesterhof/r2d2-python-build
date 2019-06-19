@@ -40,7 +40,7 @@ def test_get_enum_definition():
     # Checks if the type is correct
     assert enum_object.inner_type == "uint8_t"
     # Checks if the items are correc
-    assert enum_object.items == ['A', 'B', 'C', 'D']
+    assert enum_object.items == {'A': None, 'B': None, 'C': None, 'D':None}
 
 if __name__ == "__main__":
     test_get_enum_strings()
