@@ -5,7 +5,7 @@
 import urllib.request
 import re
 import datetime
-from tooling.enum import CxxEnum
+from tooling.enum_converter import CxxEnum
 
 __author__ = "Sebastiaan Saarloos"
 __date__ = datetime.date(2019, 6, 3)

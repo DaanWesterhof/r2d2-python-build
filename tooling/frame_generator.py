@@ -11,7 +11,7 @@ import datetime
 from pathlib import Path
 from collections import namedtuple
 from tooling import enum_parser, enum_writer
-from tooling.enum import PythonEnum
+from tooling.enum_converter import PythonEnum
 
 REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
 FRAME_REGEX = re.compile(

@@ -4,7 +4,7 @@
 in the form of cxx enums"""
 
 import datetime
-from tooling.enum import Enum
+from tooling.enum_converter import Enum
 
 _ENUM_FILE_HEADER = """
 #! python
