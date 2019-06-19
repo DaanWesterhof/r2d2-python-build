@@ -1,11 +1,8 @@
 from time import sleep
-from sys import platform
-import signal
 
+from common.signals import register_signal_callback
 from client.comm import Comm
 from modules.led_module.module.mod import Module
-
-should_stop = False
 
 
 def main():
@@ -13,27 +10,13 @@ def main():
     module = Module(Comm())
     print("Module created...")
 
-    while not should_stop:
-        module.process()
-        sleep(0.05)
-
-    module.stop()
-
-
-def stop(signal, frame):
-    """
-    Stops the process and  stops the listening to incoming frames
-    :return:
-    """
-    global should_stop
-    should_stop = True
+    with module:
+        register_signal_callback(module.stop)
+        while not module.stopped:
+            module.process()
+            sleep(0.05)
 
 
-signal.signal(signal.SIGINT, stop)
-signal.signal(signal.SIGTERM, stop)
-
-if platform != "win32":
-    signal.signal(signal.SIGQUIT, stop)
 
 if __name__ == "__main__":
     main()
