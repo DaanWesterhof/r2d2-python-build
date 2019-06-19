@@ -28,25 +28,25 @@ class CxxEnum:
 
 def get_enum_strings(file_contents: str) -> list:
     """Scrapes all the enum strings from a given string"""
-    "Remove all comments from the file."
+    # Remove all comments from the file.
     file_contents = re.sub("//.*\n", "", file_contents)
-    "Remove redundant spaces"
+    # Remove redundant spaces
     file_contents = re.sub("\s+", " ", file_contents)
-    "enum class regular expression"
+    # enum class regular expression
     pattern = re.compile("enum class\\s*\\w+\\s*\\:\\s*\\w+\\s*\\{[^\\{\\}]+\\};")
-    "Iterates over all the matches, and will yield returned"
+    # Iterates over all the matches, and will yield returned
     for item in pattern.finditer(file_contents):
-        "Yield, means: give back a single item, go further a new item is requested"
+        # Yield, means: give back a single item, go further a new item is requested
         yield item.group(0).replace("\n", "")
 
 
 def get_enum_definition(enum_string: str) -> CxxEnum:
-    "Converts a enum definition represented as a string to a CXX enum object"
-    "Get the name of the enum"
+    """Converts a enum definition represented as a string to a CXX enum object"""
+    # Get the name of the enum
     name = re.findall("(?<=enum class )\w+", enum_string)[0]
-    "Get the defined type of the enum"
+    # Get the defined type of the enum
     inner_type = re.findall(":\s*(\w+)", enum_string)[0]
-    "Get all the items of that are defined inside the enum class"
+    # Get all the items of that are defined inside the enum class
     inner_items = re.findall("\{([^{}]+)\}", enum_string)[0].replace(" ", "").split(",")
     return CxxEnum(name, inner_type, inner_items)
 
@@ -60,11 +60,11 @@ def get_github_file(repository: str, branch: str, file: str):
     )
 def get_enum_definitions() -> list:
     """Easy to call function to get all enums defined inside the frame_enums.hpp defined inside the external communications file """
-    "Get the file from GitHub"
+    # Get the file from GitHub
     file_content = get_github_file("internal_communication", "master", "code/headers/frame_enums.hpp")
-    "Seperate file in seperate enum strings"
+    # Seperate file in seperate enum strings
     enum_strings = get_enum_strings(file_content)
-    "Loop over all enum strings "
+    # Loop over all enum strings 
     for enum_string in enum_strings:
         yield get_enum_definition(enum_string)
 
