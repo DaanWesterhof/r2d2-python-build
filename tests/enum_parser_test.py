@@ -26,8 +26,8 @@ def test_get_enum_strings():
     for item in item_list:
         assert isinstance(item, str)
     # Checks if all outputs are the same as the seperated inputs
-    for i in range(len(item_list)):
-        assert components[i] == item_list[i]
+    for index, item in enumerate(item_list):
+        assert components[index] == item
 
 
 def test_get_enum_definition():
