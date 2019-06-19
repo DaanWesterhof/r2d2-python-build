@@ -1,5 +1,8 @@
 #! python
 
+"""functions for generating a python file from c++ enums
+in the form of cxx enums"""
+
 from tooling.enum_parser import CxxEnum
 import datetime
 
