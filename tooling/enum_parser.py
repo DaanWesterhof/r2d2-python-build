@@ -1,3 +1,7 @@
+#! python
+
+"""this module defines functions for parsing c++ enums"""
+
 import urllib.request
 import re
 
