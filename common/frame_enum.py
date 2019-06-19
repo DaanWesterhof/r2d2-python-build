@@ -12,7 +12,7 @@ or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 from common.common import AutoNumber
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-06-19 13:39:56.138657"
+__date__ = "2019-06-19 14:38:27.029299"
 __status__ = "Production"
 class FrameType(AutoNumber):
     NONE = ()

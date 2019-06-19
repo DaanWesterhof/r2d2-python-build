@@ -14,7 +14,7 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-06-19 13:39:56.096754"
+__date__ = "2019-06-19 14:38:27.024336"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']

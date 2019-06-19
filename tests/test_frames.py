@@ -64,5 +64,5 @@ def test_frame_can_set_data():
             annotation: convert(annotations[annotation]())
             for annotation in annotations}
         frame = frame_class()
-        frame.set_data(frame, **kwargs)
+        frame.set_data(**kwargs)
         frame.get_data()
