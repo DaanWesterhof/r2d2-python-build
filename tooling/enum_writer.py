@@ -29,22 +29,22 @@ def get_enum_file_header(maintainer: str, date: datetime.datetime, status: str =
 
 def convert_enum_to_python(cxx_enum_object: CxxEnum) -> str:
     """Create a string representation of thje CxxEnum object in Python"""
-    "Create class signature "
+    # Create class signature 
     text = F"class {cxx_enum_object.name}(AutoNumber): \n"
-    "Add all items to the classs definition"
+    # Add all items to the classs definition
     for item in cxx_enum_object:
         text += f"    {item} = ()\n"
-    "Return the string"
+    # Return the string
     return text
 
 def convert_enums_to_fileformat(enum_text_list: list):
     """Create the fileformat for the enum file"""
-    "Generate a file header"
+    # Generate a file header
     file = get_enum_file_header("Sebastiaan Saarloos", datetime.datetime.now(), "Production") + '\n'
-    "Iterate over all enum strings"
+    # Iterate over all enum strings
     for enum_text in enum_text_list:
         file += enum_text + '\n'
-    "Give back the file contents"
+    # Give back the file contents
     return file
 
 
