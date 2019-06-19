@@ -3,8 +3,8 @@
 """functions for generating a python file from c++ enums
 in the form of cxx enums"""
 
-from tooling.enum_parser import CxxEnum
 import datetime
+from tooling.enum_parser import CxxEnum
 
 def get_enum_file_header(maintainer: str, date: datetime.datetime, status: str = "Production"):
     return f"""
