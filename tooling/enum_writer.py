@@ -26,18 +26,16 @@ __status__ = "{status}"
 """
 
 
-
-
-
 def convert_enum_to_python(cxx_enum_object: CxxEnum) -> str:
     """Create a string representation of thje CxxEnum object in Python"""
-    # Create class signature 
+    # Create class signature
     text = F"class {cxx_enum_object.name}(AutoNumber): \n"
     # Add all items to the classs definition
     for item in cxx_enum_object:
         text += f"    {item} = ()\n"
     # Return the string
     return text
+
 
 def convert_enums_to_fileformat(enum_text_list: list):
     """Create the fileformat for the enum file"""
@@ -53,11 +51,6 @@ def convert_enums_to_fileformat(enum_text_list: list):
     return file
 
 
-
-
-
-
-
-
 if __name__ == "__main__":
-    convert_enum_to_python(CxxEnum("HelloWorld", "uint8_t", ["Hello", "World"]))
+    convert_enum_to_python(
+        CxxEnum("HelloWorld", "uint8_t", ["Hello", "World"]))
