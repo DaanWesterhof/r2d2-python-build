@@ -2,8 +2,8 @@
 
 """tests tooling/enum_parser"""
 
-import tooling.enum_parser as enum_parser
 import types
+from tooling import enum_parser
 
 TEST_SET = ["enum class test_item_" + str(i) + " : uint8_t {A, B, C};" for i in range(10)]
 
