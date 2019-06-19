@@ -8,7 +8,7 @@ class CxxEnum:
         """Initializes the enum class"""
         self.name: str = name
         self.inner_type: str = inner_type
-        self.items: list[str] = items
+        self.items: 'list[str]' = items
 
     def __len__(self) -> int:
         """Gives the number of items inside the enum"""
