@@ -4,7 +4,7 @@
 in the form of cxx enums"""
 
 import datetime
-from tooling.enum_parser import CxxEnum
+from tooling.enum import Enum
 
 _ENUM_FILE_HEADER = """
 #! python
@@ -18,7 +18,7 @@ please make a github issue on https://github.com/R2D2-2019/r2d2-python-build/iss
 or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 \"""
 
-from common.common import AutoNumber
+import enum
 
 __maintainer__ = "{maintainer}"
 __date__ = "{date}"
@@ -26,31 +26,17 @@ __status__ = "{status}"
 """
 
 
-def convert_enum_to_python(cxx_enum_object: CxxEnum) -> str:
-    """Create a string representation of thje CxxEnum object in Python"""
-    # Create class signature
-    text = F"class {cxx_enum_object.name}(AutoNumber): \n"
-    # Add all items to the classs definition
-    for item in cxx_enum_object:
-        text += f"    {item} = ()\n"
-    # Return the string
-    return text
 
 
-def convert_enums_to_fileformat(enum_text_list: list):
+def write_enums_to_file(file, enums: 'list[tooling.Enum]'):
     """Create the fileformat for the enum file"""
-    # Generate a file header
-    file = _ENUM_FILE_HEADER.format(
+    # write the file header to file
+    file.write(_ENUM_FILE_HEADER.format(
         maintainer="Sebastiaan Saarloos",
         date=datetime.datetime.now(),
-        status="Production") + '\n'
-    # Iterate over all enum strings
-    for enum_text in enum_text_list:
-        file += enum_text + '\n'
-    # Give back the file contents
-    return file
-
-
-if __name__ == "__main__":
-    convert_enum_to_python(
-        CxxEnum("HelloWorld", "uint8_t", ["Hello", "World"]))
+        status="Production"
+    ))
+    # write the enums to file
+    for enum in enums:
+        enum: Enum
+        file.write(str(enum))

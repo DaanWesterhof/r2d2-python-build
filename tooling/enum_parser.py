@@ -5,34 +5,12 @@
 import urllib.request
 import re
 import datetime
+from tooling.enum import CxxEnum
 
 __author__ = "Sebastiaan Saarloos"
 __date__ = datetime.date(2019, 6, 3)
 __status__ = "Developing"
 __maintainer__ = "Isha Geurtsen"
-
-class CxxEnum:
-    """Class that defines an Enumeration in C++"""
-    def __init__(self, name: str, inner_type: str, items: list):
-        """Initializes the enum class"""
-        self.name: str = name
-        self.inner_type: str = inner_type
-        self.items: 'list[str]' = items
-
-    def __len__(self) -> int:
-        """Gives the number of items inside the enum"""
-        return len(self.items)
-
-    def __repr__(self) -> str:
-        """Gives a representation in a string inside"""
-        return f"{self.name} : {self.inner_type} {self.items.__repr__()}"
-
-    def __iter__(self) -> str:
-        """Iterates over all the items inside the enum"""
-        for item in self.items:
-            yield item
-
-
 
 
 def get_enum_strings(file_contents: str) -> list:
@@ -56,8 +34,10 @@ def get_enum_definition(enum_string: str) -> CxxEnum:
     # Get the defined type of the enum
     inner_type = re.findall(r":\s*(\w+)", enum_string)[0]
     # Get all the items of that are defined inside the enum class
-    inner_items = re.findall(r"\{([^{}]+)\}", enum_string)[0].replace(" ", "").split(",")
-    return CxxEnum(name, inner_type, inner_items)
+    inner_items = re.findall(
+        r"\{([^{}]+)\}", enum_string)[0].replace(" ", "").split(",")
+    return CxxEnum(name, inner_type, dict(zip(inner_items, [None]*len(inner_items))))
+
 
 def get_github_file(repository: str, branch: str, file: str):
     """Helper function to get a github file from a given repository"""
@@ -69,6 +49,8 @@ def get_github_file(repository: str, branch: str, file: str):
         .read()
         .decode("utf-8")
     )
+
+
 def get_enum_definitions() -> list:
     """collect enums defined in the frame_enums.hpp from the external communications file"""
     # Get the file from GitHub
@@ -82,7 +64,6 @@ def get_enum_definitions() -> list:
     # Loop over all enum strings
     for enum_string in enum_strings:
         yield get_enum_definition(enum_string)
-
 
 
 if __name__ == "__main__":

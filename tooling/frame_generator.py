@@ -10,9 +10,8 @@ import urllib.request
 import datetime
 from pathlib import Path
 from collections import namedtuple
-import tooling.enum_parser as enum_parser
-import tooling.enum_writer as enum_writer
-
+from tooling import enum_parser, enum_writer
+from tooling.enum import PythonEnum
 
 REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
 FRAME_REGEX = re.compile(
@@ -162,7 +161,8 @@ def generate_frame_class(frames):
             match = re.match(r"(char) (\w+)\[(\d*)\]", data_member)
             if match:
                 member_type, member_name, member_size = match.groups()
-                if not member_size: member_size = "255"
+                if not member_size:
+                    member_size = "255"
                 member_type = CppType(str(int(member_size))+"s", int(member_size), str)
             else:
                 member_type, member_name = data_member.split(' ')
@@ -230,9 +230,9 @@ def _path(loc, filename):
 
 if __name__ == "__main__":
     ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
-    enums = list(enum_parser.get_enum_definitions())
+    ENUMS = list(enum_parser.get_enum_definitions())
     enum: enum_parser.CxxEnum
-    for enum in enums:
+    for enum in ENUMS:
         if enum.inner_type not in TYPE_TABLE.keys():
             continue
         TYPE_TABLE[enum.name] = TYPE_TABLE[enum.inner_type]
@@ -244,6 +244,7 @@ if __name__ == "__main__":
         frame_enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))
 
     with open(_path('common', 'enums.py'), 'w') as enum_file:
-        enum_text_list = [enum_writer.convert_enum_to_python(e) for e in enums]
-        file_content = enum_writer.convert_enums_to_fileformat(enum_text_list)
-        enum_file.write(file_content)
+        enum_writer.write_enums_to_file(
+            file=enum_file,
+            enums=(PythonEnum.from_enum(enum) for enum in ENUMS),
+        )
