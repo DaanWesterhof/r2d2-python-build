@@ -55,26 +55,30 @@ def get_enum_definition(enum_string: str) -> CxxEnum:
 
 def get_github_file(repository: str, branch: str, file: str):
     """Helper function to get a github file from a given repository"""
+    url = (
+        "https://raw.githubusercontent.com/R2D2-2019/" +
+        f"{repository}/{branch}/{file}")
     return (
-        urllib.request.urlopen(
-            f"https://raw.githubusercontent.com/R2D2-2019/{repository}/{branch}/{file}")
-            .read()
-            .decode("utf-8")
+        urllib.request.urlopen(url)
+        .read()
+        .decode("utf-8")
     )
 def get_enum_definitions() -> list:
-    """Easy to call function to get all enums defined inside the frame_enums.hpp defined inside the external communications file """
+    """collect enums defined in the frame_enums.hpp from the external communications file"""
     # Get the file from GitHub
-    file_content = get_github_file("internal_communication", "master", "code/headers/frame_enums.hpp")
+    file_content = get_github_file(
+        "internal_communication",
+        "master",
+        "code/headers/frame_enums.hpp"
+    )
     # Seperate file in seperate enum strings
     enum_strings = get_enum_strings(file_content)
-    # Loop over all enum strings 
+    # Loop over all enum strings
     for enum_string in enum_strings:
         yield get_enum_definition(enum_string)
 
 
 
 if __name__ == "__main__":
-    definitions = get_enum_definitions()
-    for definition in definitions:
+    for definition in get_enum_definitions():
         print(definition)
-
