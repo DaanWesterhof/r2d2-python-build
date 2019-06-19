@@ -4,6 +4,12 @@
 
 import urllib.request
 import re
+import datetime
+
+__author__ = "Sebastiaan Saarloos"
+__date__ = datetime.date(2019, 6, 3)
+__status__ = "Developing"
+__maintainer__ = "Isha Geurtsen"
 
 class CxxEnum:
     """Class that defines an Enumeration in C++"""
