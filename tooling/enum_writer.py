@@ -6,25 +6,24 @@ in the form of cxx enums"""
 import datetime
 from tooling.enum_parser import CxxEnum
 
-def get_enum_file_header(maintainer: str, date: datetime.datetime, status: str = "Production"):
-    return f"""
-    #! python
+_ENUM_FILE_HEADER = """
+#! python
 
-    \""" this generated file defines Frames
+\""" this generated file defines Frames
 
-    it is based on the definitons of https://raw.githubusercontent.com/R2D2-2019/internal_communication/master/code/headers/frame_types.hpp
+it is based on the definitons of https://raw.githubusercontent.com/R2D2-2019/internal_communication/master/code/headers/frame_types.hpp
 
-    if you have a question or a problem.
-    please make a github issue on https://github.com/R2D2-2019/r2d2-python-build/issues/new
-    or look at https://github.com/R2D2-2019/r2d2-python-build#faq
-    \"""
+if you have a question or a problem.
+please make a github issue on https://github.com/R2D2-2019/r2d2-python-build/issues/new
+or look at https://github.com/R2D2-2019/r2d2-python-build#faq
+\"""
 
-    from common.common import AutoNumber
+from common.common import AutoNumber
 
-    __maintainer__ = "{maintainer}"
-    __date__ = "{date}"
-    __status__ = "{status}"
-    """
+__maintainer__ = "{maintainer}"
+__date__ = "{date}"
+__status__ = "{status}"
+"""
 
 
 
@@ -43,7 +42,10 @@ def convert_enum_to_python(cxx_enum_object: CxxEnum) -> str:
 def convert_enums_to_fileformat(enum_text_list: list):
     """Create the fileformat for the enum file"""
     # Generate a file header
-    file = get_enum_file_header("Sebastiaan Saarloos", datetime.datetime.now(), "Production") + '\n'
+    file = _ENUM_FILE_HEADER.format(
+        maintainer="Sebastiaan Saarloos",
+        date=datetime.datetime.now(),
+        status="Production") + '\n'
     # Iterate over all enum strings
     for enum_text in enum_text_list:
         file += enum_text + '\n'
