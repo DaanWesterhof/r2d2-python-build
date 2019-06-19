@@ -1,4 +1,3 @@
-import sys
 import urllib.request
 import re
 
