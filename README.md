@@ -21,38 +21,23 @@ A basic module consists of two files:
 ### `main.py` 
 A basic `main.py` file generally looks like this:
 ```python
-from time import sleep
-from sys import platform
-import signal
+import time
 
+from common.signals import register_signal_callback
 from client.comm import Comm
 from modules.template.module.mod import Module
 
-should_stop = False
-
-
 def main():
+    "entry point of the application"
+
     print("Starting application...\n")
     module = Module(Comm())
+    register_signal_callback(module.stop)
     print("Module created...")
-
-    while not should_stop:
-        module.process()
-        sleep(0.05)
-
-    module.stop()
-
-
-def stop(signal, frame):
-    global should_stop
-    should_stop = True
-
-
-signal.signal(signal.SIGINT, stop)
-signal.signal(signal.SIGTERM, stop)
-
-if platform != "win32":
-    signal.signal(signal.SIGQUIT, stop)
+    with module:
+        while not module.stopped:
+            module.process()
+            time.sleep(0.05)
 
 if __name__ == "__main__":
     main()
@@ -60,9 +45,6 @@ if __name__ == "__main__":
 ```
 
 Let's break that down:
-
-`should_stop` is the global stop flag the program loop checks.
-
 
 `main()` is the (symbolic) main function, containing the actual meat of the program. It instantiates the `Module` class and starts processing.
 
@@ -74,7 +56,7 @@ This works in the same fashion as the C++ internal communication module.
 
 The following loop is important:
 ```python
-while not should_stop:
+while not module.stopped:
     module.process()
     sleep(0.05)
 ```
@@ -87,16 +69,9 @@ Increasing this value too much will cause you to miss frames however, so please 
 
 Then there is the signal machinery:
 ```python
-def stop(signal, frame):
-    global should_stop
-    should_stop = True
-
-
-signal.signal(signal.SIGINT, stop)
-signal.signal(signal.SIGTERM, stop)
-
-if platform != "win32":
-    signal.signal(signal.SIGQUIT, stop)
+from common.signals import register_signal_callback
+...
+register_signal_callback(module.stop)
 ```
    
 This will allow the module to correctly handle a shutdown request. This is also for your convenience; without this a `Ctrl+C` won't work correctly.
@@ -112,13 +87,18 @@ if __name__ == "__main__":
 ### `module/mod.py`
 A basic `mod.py` looks like this (in this case, for the LED module):
 ```python
+"""this file defines the module for controller_module"""
 from client.comm import BaseComm
 from common.frame_enum import FrameType
+from common.base_module import BaseModule
 
-
-class Module:
+class Module(BaseModule):
+    """
+    this module listens for an activty led state frame.
+    then prints wether the led is supposed to be ON or OFF based on the received frame
+    """
     def __init__(self, comm: BaseComm):
-        self.comm = comm
+        super(Module, self).__init__(comm)
         self.comm.listen_for([FrameType.ACTIVITY_LED_STATE])
 
     def process(self):
@@ -128,15 +108,11 @@ class Module:
             if frame.request:
                 continue
 
-            values = frame.get_data()
-
-            if values[0]:
+            if frame["state"]:
                 print("The LED is ON")
             else:
                 print("The LED is OFF")
 
-    def stop(self):
-        self.comm.stop()
 ```
 
 Let's break that down:
@@ -149,7 +125,7 @@ self.comm.listen_for([FrameType.ACTIVITY_LED_STATE])
 
 If you want to receive **all** frames, you can specify `FrameType.ALL`.
 
-The process function works on all data that is not yet processed. Please note: if you don't process data often enough, you might miss some frames.
+The process function works on all data that is not yet processed. Please note: **if you don't process data often enough, you might miss some frames.**
 It is dependent on the module if this is a problem or not.
 
 The following idiom is important:
@@ -204,6 +180,34 @@ The system supports Linux and Windows. While Python itself is multiplatform, qui
 
 ### Local development
 The `manager` can be started in the background and modules can connect to it, provided the port is free on manager start.
+
+### loggging
+
+Because the python build will be run on a docker container, all loggging is done using the logging module.
+
+logs will be writen to `python_build.log` and to the screen.
+
+if you want to change what gets logged, where it gets logged, or the format of the logging. you need call `logging.basicConfig` before you import modules form the python build
+
+```python
+# test.py
+import logging
+import common.config
+
+LOGGER = logging.getLogger("custom.logger")
+if __name__ == "__main__":
+    LOGGER.info("hello world")
+    thing = "something"
+    LOGGER.warning("%s is about to go wrong", thing)
+    LOGGER.critical("%s has gone wrong", thing)
+```
+
+```powershell
+> python test.py
+2019-06-17 15:12:21,849:INFO:custom.logger:hello world
+2019-06-17 15:12:21,850:WARNING:custom.logger:something is about to go wrong
+2019-06-17 15:12:21,850:CRITICAL:custom.logger:something has gone wrong
+```
 
 ## Process based 
 

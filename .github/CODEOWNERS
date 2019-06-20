@@ -1,0 +1,5 @@
+# github requests code reviews from the Code owner
+# if a file is touched that matches the pattern
+# [code owner file](https://github.blog/2017-07-06-introducing-code-owners/)
+
+* @steviestickman

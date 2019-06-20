@@ -1,11 +1,11 @@
 venv/
 
-
 # Created by https://www.gitignore.io/api/vim,code,emacs,linux,nanoc,macos,python,windows,pycharm,pycharm+all,pycharm+iml,notepadpp
 # Edit at https://www.gitignore.io/?templates=vim,code,emacs,linux,nanoc,macos,python,windows,pycharm,pycharm+all,pycharm+iml,notepadpp
 
 ### Code ###
 .vscode/*
+python_build.log
 
 ### Emacs ###
 # -*- mode: gitignore; -*-

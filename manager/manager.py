@@ -5,16 +5,17 @@ this program hosts the python internal bus.
 see client/comm.py for the interface
 """
 
-from sys import platform
 import os
 import copy
 import threading
+import time
 import signal
-from time import sleep
+import logging
 from multiprocessing.managers import BaseManager
 from multiprocessing import Lock
-from common.common import BusConfig
-
+from common.signals import register_signal_callback
+from common.common import BUSCONFIG
+import common.config
 
 class QueueManager(BaseManager):
     """
@@ -25,6 +26,7 @@ class QueueManager(BaseManager):
 
 
 PACKET_QUEUE_LENGTH = 64
+_LOGGER = logging.getLogger("manager.manager")
 
 
 class BusManager:
@@ -32,6 +34,7 @@ class BusManager:
     The manager of the bus.
     Puts data on the bus and returns it from the bus.
     """
+
     def __init__(self):
         """
         Setup the manager
@@ -40,7 +43,6 @@ class BusManager:
         Creates a manager thread
         :return:
         """
-
 
         self.processing_lock = Lock()
         """ The lock on the queue, if locked no one can use the queue """
@@ -70,16 +72,16 @@ class BusManager:
 
         :return:
         """
-
-        print("Starting queue manager...")
+        _LOGGER.info("Starting queue manager...")
         # Register the queue for receiving frames from modules
         QueueManager.register('rx_queue', callable=lambda: self.rx_queue)
         # Register the queue for sending frames to modules
         QueueManager.register('tx_queue', callable=lambda: self.tx_queue)
-        self.manager = QueueManager(address=('', BusConfig.PORT), authkey=BusConfig.AUTH_KEY)
+        self.manager = QueueManager(
+            address=('', BUSCONFIG.ADDRESS.port), authkey=BUSCONFIG.AUTH_KEY)
         self.server = self.manager.get_server()
 
-        print("Start serving!")
+        _LOGGER.info("Start serving!")
         self.server.serve_forever()
 
     def _process_tx(self):
@@ -103,8 +105,7 @@ class BusManager:
             # Distribute frame internally
             self.rx_queue.append(frame)
 
-            #print(frame)  # 'send'
-            print()
+            _LOGGER.debug(frame)  # 'send'
 
     def _process_rx(self):
         """
@@ -121,36 +122,45 @@ class BusManager:
             pass
             # TODO: socket
             #frame = ((self.pid, time()), FrameButtonState())
-            #self.rx_queue.append(frame)
+            # self.rx_queue.append(frame)
         else:
             self.rx_queue.pop(0)
 
         self.processing_lock.release()
 
-    def start(self):
+    def __enter__(self):
         """
         Starts the manager and exposes a central bus.
 
         :return:
         """
-        print("Starting...")
+        _LOGGER.info("Starting...")
 
         self.manager_thread.start()
 
         # Wait for the manager to start up...
-        sleep(0.5)
+        time.sleep(0.5)
 
-        print("Starting consumer...")
+        _LOGGER.info("Starting consumer...")
 
-        pusher = QueueManager(address=BusConfig.ADDRESS, authkey=BusConfig.AUTH_KEY)
+        pusher = QueueManager(
+            address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
         pusher.connect()
 
-        print("Init done, working...")
+        _LOGGER.info("Init done, working...")
+        return self
 
+    def process(self):
+        """processes both the receive and the send queue until stop is called"""
         while not self.should_stop:
             self._process_tx()
             self._process_rx()
-            sleep(0.01)
+            time.sleep(0.01)
+
+    def __exit__(self, *args):
+        self.should_stop = True
+        self.server.stop_event.set()
+        self.manager_thread.join()
 
     def stop(self):
         """
@@ -159,25 +169,9 @@ class BusManager:
         :return:
         """
         self.should_stop = True
-        self.server.stop_event.set()
-        self.manager_thread.join()
-
-bus_manager = BusManager()
 
 
-def stop(signal, frame):
-    """
-    Stops the bus manager.
-
-    :return:
-    """
-    bus_manager.stop()
-
-
-signal.signal(signal.SIGINT, stop)
-signal.signal(signal.SIGTERM, stop)
-
-if platform != "win32":
-    signal.signal(signal.SIGQUIT, stop)
-
-bus_manager.start()
+if __name__ == "__main__":
+    with BusManager() as bus_manager:
+        register_signal_callback(bus_manager.stop)
+        bus_manager.process()

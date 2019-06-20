@@ -10,6 +10,8 @@ import urllib.request
 import datetime
 from pathlib import Path
 from collections import namedtuple
+from tooling import enum_parser, enum_writer
+from tooling.enum_converter import PythonEnum
 
 REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
 FRAME_REGEX = re.compile(
@@ -30,7 +32,7 @@ Class = namedtuple("Frame", ["name", "members", "doc_string"])
 
 TYPE_TABLE = {
     'char':                 CppType(format='c', size=1, python_type=str),
-    'int8_t':               CppType(format='c', size=1, python_type=int),
+    'int8_t':               CppType(format='b', size=1, python_type=int),
     'signed char':          CppType(format='b', size=1, python_type=str),
     'unsigned char':        CppType(format='B', size=1, python_type=str),
     'uint8_t':              CppType(format='B', size=1, python_type=int),
@@ -59,8 +61,6 @@ TYPE_TABLE = {
     'void*':                CppType(format='P', size=4, python_type=int),
     'void *':               CppType(format='P', size=4, python_type=int),
 }
-
-
 def parse_cpp(input_string: str, regex: re.Pattern = FRAME_REGEX) -> ...:
     """
     this method parses the input_string using the regex pattern
@@ -149,7 +149,7 @@ def generate_frame_class(frames):
 
         # The frame format for in the class, follows
         # the format of the 'struct' Python 3.7 package
-        frame_format = ''
+        frame_format = []
 
         # The size of the struct in bytes
         size = 0
@@ -161,13 +161,14 @@ def generate_frame_class(frames):
             match = re.match(r"(char) (\w+)\[(\d*)\]", data_member)
             if match:
                 member_type, member_name, member_size = match.groups()
-                if not member_size: member_size = "255"
+                if not member_size:
+                    member_size = "255"
                 member_type = CppType(str(int(member_size))+"s", int(member_size), str)
             else:
                 member_type, member_name = data_member.split(' ')
                 member_type = TYPE_TABLE[member_type]
             size += member_type.size
-            frame_format += member_type.format
+            frame_format.append(member_type.format)
             name_list.append(member_name)
             typed_list.append('{}: {}'.format(
                 member_name, member_type.python_type.__name__))
@@ -176,7 +177,7 @@ def generate_frame_class(frames):
             attribute_names=', '.join(["'" + m + "'" for m in name_list]),
             description='\\n'.join(frame.doc_string),
             frame_type=frame_type,
-            frame_format=frame_format,
+            frame_format=" ".join(frame_format),
             size=size,
             attributes_typed=', '.join(typed_list),
             attributes=', '.join(name_list),
@@ -229,7 +230,21 @@ def _path(loc, filename):
 
 if __name__ == "__main__":
     ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
+    ENUMS = list(enum_parser.get_enum_definitions())
+    enum: enum_parser.CxxEnum
+    for enum in ENUMS:
+        if enum.inner_type not in TYPE_TABLE.keys():
+            continue
+        TYPE_TABLE[enum.name] = TYPE_TABLE[enum.inner_type]
+
+
     with open(_path('common', 'frames.py'), 'w') as frames_file:
         frames_file.write(generate_frame_class(parse_cpp(FRAME_TEXT)))
-    with open(_path('common', 'frame_enum.py'), 'w') as enum_file:
-        enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))
+    with open(_path('common', 'frame_enum.py'), 'w') as frame_enum_file:
+        frame_enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))
+
+    with open(_path('common', 'enums.py'), 'w') as enum_file:
+        enum_writer.write_enums_to_file(
+            file=enum_file,
+            enums=(PythonEnum.from_enum(enum) for enum in ENUMS),
+        )

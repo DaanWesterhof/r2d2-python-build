@@ -3,21 +3,27 @@ this module provides the API to the python bus
 """
 
 from queue import Queue
-from time import time
+from time import time, sleep
 import threading
 import os
 from multiprocessing.managers import BaseManager
-from abc import abstractclassmethod, ABC
+import logging
+from abc import abstractmethod, ABC
 
-from common.common import Frame, Priority, BusConfig, FrameWrapper
+import common.config
+from common.common import Frame, Priority, BUSCONFIG, FrameWrapper
 from common.frame_enum import FrameType
 
+
+FORMAT = '%(asctime)s %(levelname)s: %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.INFO)
+COMM_LOGGER = logging.getLogger("python_build.comm")
 
 class BaseComm(ABC):
     """
     Interface for communication classes.
     """
-    @abstractclassmethod
+    @abstractmethod
     def listen_for(self, comm_listen_for: list) -> None:
         """
         Specify what frame types this modules
@@ -27,7 +33,7 @@ class BaseComm(ABC):
         :return:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def accepts_frame(self, frame_type: FrameType) -> bool:
         """
         Does this modules accept the given
@@ -37,7 +43,7 @@ class BaseComm(ABC):
         :return:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def request(self, frame_type: FrameType, prio: Priority = Priority.NORMAL) -> None:
         """
         Request data from the bus
@@ -47,7 +53,7 @@ class BaseComm(ABC):
         :return:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def send(self, frame, prio: Priority = Priority.NORMAL) -> None:
         """
         Put a frame on the bus.
@@ -57,7 +63,7 @@ class BaseComm(ABC):
         :param prio:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def has_data(self) -> bool:
         """
         Whether there is data available for
@@ -66,7 +72,7 @@ class BaseComm(ABC):
         :return:
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def get_data(self) -> Frame:
         """
         Non-blocking, will throw the Empty
@@ -77,7 +83,7 @@ class BaseComm(ABC):
         :return: common.Frame
         """
 
-    @abstractclassmethod
+    @abstractmethod
     def stop(self) -> None:
         pass
 
@@ -92,8 +98,22 @@ QueueManager.register('tx_queue')
 
 class Comm(BaseComm):
     def __init__(self):
-        self.manager = QueueManager(address=BusConfig.ADDRESS, authkey=BusConfig.AUTH_KEY)
-        self.manager.connect()
+        self.manager = QueueManager(address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
+
+        connection_tries = 0
+
+        while True:
+            try:
+                connection_tries += 1
+                self.manager.connect()
+            except ConnectionRefusedError:
+                COMM_LOGGER.warning("Could not connect to Python bus. Trying to reconnect in 10 sec")    
+                if connection_tries == 1:
+                    COMM_LOGGER.warning("Did you start manager/manager.py?")
+                sleep(10)
+            else:
+                COMM_LOGGER.info("Connected to Python bus succesfully.")
+                break
 
         # Queues that refer to the bus process
         self.rx_queue = self.manager.rx_queue()
@@ -121,7 +141,7 @@ class Comm(BaseComm):
         :return:
         """
 
-        print("Starting connection worker...")
+        COMM_LOGGER.info("Starting connection worker...")
 
         while not self.should_stop:
             for frame in self.rx_queue._getvalue():

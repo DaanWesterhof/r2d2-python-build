@@ -3,12 +3,12 @@
 from client.comm import BaseComm
 from common.frame_enum import FrameType
 from common.frames import FrameActivityLedState
+from common.base_module import BaseModule
 
-
-class Module:
+class Module(BaseModule):
     "this module requests a button state and forwards the result as a ActivityLedState"
     def __init__(self, comm: BaseComm):
-        self.comm = comm
+        super(Module, self).__init__(comm)
         self.comm.listen_for([FrameType.BUTTON_STATE])
 
     def process(self):
@@ -36,6 +36,3 @@ class Module:
 
             # Send it off!
             self.comm.send(state)
-
-    def stop(self):
-        self.comm.stop()

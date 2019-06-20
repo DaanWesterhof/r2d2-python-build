@@ -1,15 +1,15 @@
 """this file defines the module for controller_module"""
 from client.comm import BaseComm
 from common.frame_enum import FrameType
+from common.base_module import BaseModule
 
-
-class Module:
+class Module(BaseModule):
     """
     this module listens for an activty led state frame.
     then prints wether the led is supposed to be ON or OFF based on the received frame
     """
     def __init__(self, comm: BaseComm):
-        self.comm = comm
+        super(Module, self).__init__(comm)
         self.comm.listen_for([FrameType.ACTIVITY_LED_STATE])
 
     def process(self):
@@ -23,6 +23,3 @@ class Module:
                 print("The LED is ON")
             else:
                 print("The LED is OFF")
-
-    def stop(self):
-        self.comm.stop()

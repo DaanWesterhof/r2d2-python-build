@@ -14,7 +14,7 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-05-23 11:50:59.795950"
+__date__ = "2019-06-19 14:38:27.024336"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -58,18 +58,32 @@ class FrameDistance(Frame):
         self.data = struct.pack(self.format, mm)
 
 
-class FrameDisplayFilledRectangle(Frame):
-    MEMBERS = ['x', 'y', 'width', 'height', 'red', 'green', 'blue']
+class FrameDisplayRectangle(Frame):
+    MEMBERS = ['x', 'y', 'width', 'height', 'filled', 'red', 'green', 'blue']
     DESCRIPTION = ""
 
     def __init__(self):
-        super(FrameDisplayFilledRectangle, self).__init__()
-        self.type = FrameType.DISPLAY_FILLED_RECTANGLE
-        self.format = 'BBBBBBB'
+        super(FrameDisplayRectangle, self).__init__()
+        self.type = FrameType.DISPLAY_RECTANGLE
+        self.format = 'B B B B ? B B B'
+        self.length = 8
+
+    def set_data(self, x: int, y: int, width: int, height: int, filled: bool, red: int, green: int, blue: int):
+        self.data = struct.pack(self.format, x, y, width, height, filled, red, green, blue)
+
+
+class FrameDisplayRectangleViaCursor(Frame):
+    MEMBERS = ['cursor_id', 'width', 'height', 'filled', 'red', 'green', 'blue']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameDisplayRectangleViaCursor, self).__init__()
+        self.type = FrameType.DISPLAY_RECTANGLE_VIA_CURSOR
+        self.format = 'B B B ? B B B'
         self.length = 7
 
-    def set_data(self, x: int, y: int, width: int, height: int, red: int, green: int, blue: int):
-        self.data = struct.pack(self.format, x, y, width, height, red, green, blue)
+    def set_data(self, cursor_id: int, width: int, height: int, filled: bool, red: int, green: int, blue: int):
+        self.data = struct.pack(self.format, cursor_id, width, height, filled, red, green, blue)
 
 
 class FrameDisplay8x8Character(Frame):
@@ -79,7 +93,7 @@ class FrameDisplay8x8Character(Frame):
     def __init__(self):
         super(FrameDisplay8x8Character, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER
-        self.format = 'BBBBB243s'
+        self.format = 'B B B B B 243s'
         self.length = 248
 
     def set_data(self, x: int, y: int, red: int, green: int, blue: int, characters: str):
@@ -93,11 +107,39 @@ class FrameDisplay8x8CharacterViaCursor(Frame):
     def __init__(self):
         super(FrameDisplay8x8CharacterViaCursor, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
-        self.format = 'B247s'
+        self.format = 'B 247s'
         self.length = 248
 
     def set_data(self, cursor_id: int, characters: str):
         self.data = struct.pack(self.format, cursor_id, characters)
+
+
+class FrameDisplayCircle(Frame):
+    MEMBERS = ['x', 'y', 'radius', 'filled', 'red', 'green', 'blue']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameDisplayCircle, self).__init__()
+        self.type = FrameType.DISPLAY_CIRCLE
+        self.format = 'B B B ? B B B'
+        self.length = 7
+
+    def set_data(self, x: int, y: int, radius: int, filled: bool, red: int, green: int, blue: int):
+        self.data = struct.pack(self.format, x, y, radius, filled, red, green, blue)
+
+
+class FrameDisplayCircleViaCursor(Frame):
+    MEMBERS = ['cursor_id', 'radius', 'filled', 'red', 'green', 'blue']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameDisplayCircleViaCursor, self).__init__()
+        self.type = FrameType.DISPLAY_CIRCLE_VIA_CURSOR
+        self.format = 'B B ? B B B'
+        self.length = 6
+
+    def set_data(self, cursor_id: int, radius: int, filled: bool, red: int, green: int, blue: int):
+        self.data = struct.pack(self.format, cursor_id, radius, filled, red, green, blue)
 
 
 class FrameCursorPosition(Frame):
@@ -107,7 +149,7 @@ class FrameCursorPosition(Frame):
     def __init__(self):
         super(FrameCursorPosition, self).__init__()
         self.type = FrameType.CURSOR_POSITION
-        self.format = 'BBB'
+        self.format = 'B B B'
         self.length = 3
 
     def set_data(self, cursor_id: int, cursor_x: int, cursor_y: int):
@@ -121,7 +163,7 @@ class FrameCursorColor(Frame):
     def __init__(self):
         super(FrameCursorColor, self).__init__()
         self.type = FrameType.CURSOR_COLOR
-        self.format = 'BBBB'
+        self.format = 'B B B B'
         self.length = 4
 
     def set_data(self, cursor_id: int, red: int, green: int, blue: int):
@@ -135,7 +177,7 @@ class FrameTemperature(Frame):
     def __init__(self):
         super(FrameTemperature, self).__init__()
         self.type = FrameType.TEMPERATURE
-        self.format = 'Ihh'
+        self.format = 'I h h'
         self.length = 8
 
     def set_data(self, id: int, ambient_temperature: int, object_temperature: int):
@@ -149,7 +191,7 @@ class FrameUiCommand(Frame):
     def __init__(self):
         super(FrameUiCommand, self).__init__()
         self.type = FrameType.UI_COMMAND
-        self.format = 'ccc'
+        self.format = 'c c c'
         self.length = 3
 
     def set_data(self, command: str, params: str, destination: str):
@@ -191,7 +233,7 @@ class FrameBatteryLevel(Frame):
     def __init__(self):
         super(FrameBatteryLevel, self).__init__()
         self.type = FrameType.BATTERY_LEVEL
-        self.format = 'IB'
+        self.format = 'I B'
         self.length = 5
 
     def set_data(self, voltage: int, percentage: int):
@@ -205,7 +247,7 @@ class FrameManualControl(Frame):
     def __init__(self):
         super(FrameManualControl, self).__init__()
         self.type = FrameType.MANUAL_CONTROL
-        self.format = 'cc?'
+        self.format = 'b b ?'
         self.length = 3
 
     def set_data(self, speed: int, rotation: int, brake: bool):
@@ -219,7 +261,7 @@ class FrameMovementControl(Frame):
     def __init__(self):
         super(FrameMovementControl, self).__init__()
         self.type = FrameType.MOVEMENT_CONTROL
-        self.format = 'cc?'
+        self.format = 'b b ?'
         self.length = 3
 
     def set_data(self, speed: int, rotation: int, brake: bool):
@@ -227,17 +269,17 @@ class FrameMovementControl(Frame):
 
 
 class FrameCoordinate(Frame):
-    MEMBERS = ['altitude', 'long_thousandth_sec', 'lat_thousandth_sec', 'lat_deg', 'lat_min', 'lat_sec', 'long_deg', 'long_min', 'long_sec', 'north_south_hemisphere', 'east_west_hemisphere']
+    MEMBERS = ['altitude', 'long_tenthousandth_min', 'lat_tenthousandth_min', 'lat_deg', 'lat_min', 'long_deg', 'long_min', 'north_south_hemisphere', 'east_west_hemisphere']
     DESCRIPTION = ""
 
     def __init__(self):
         super(FrameCoordinate, self).__init__()
         self.type = FrameType.COORDINATE
-        self.format = 'hHHBBBBBB??'
-        self.length = 14
+        self.format = 'h H H B B B B ? ?'
+        self.length = 12
 
-    def set_data(self, altitude: int, long_thousandth_sec: int, lat_thousandth_sec: int, lat_deg: int, lat_min: int, lat_sec: int, long_deg: int, long_min: int, long_sec: int, north_south_hemisphere: bool, east_west_hemisphere: bool):
-        self.data = struct.pack(self.format, altitude, long_thousandth_sec, lat_thousandth_sec, lat_deg, lat_min, lat_sec, long_deg, long_min, long_sec, north_south_hemisphere, east_west_hemisphere)
+    def set_data(self, altitude: int, long_tenthousandth_min: int, lat_tenthousandth_min: int, lat_deg: int, lat_min: int, long_deg: int, long_min: int, north_south_hemisphere: bool, east_west_hemisphere: bool):
+        self.data = struct.pack(self.format, altitude, long_tenthousandth_min, lat_tenthousandth_min, lat_deg, lat_min, long_deg, long_min, north_south_hemisphere, east_west_hemisphere)
 
 
 class FramePathStep(Frame):
@@ -247,7 +289,7 @@ class FramePathStep(Frame):
     def __init__(self):
         super(FramePathStep, self).__init__()
         self.type = FrameType.PATH_STEP
-        self.format = 'IIHB'
+        self.format = 'I I H B'
         self.length = 11
 
     def set_data(self, x: int, y: int, step_id: int, path_id: int):
@@ -261,7 +303,7 @@ class FrameCommandLog(Frame):
     def __init__(self):
         super(FrameCommandLog, self).__init__()
         self.type = FrameType.COMMAND_LOG
-        self.format = 'Hcc'
+        self.format = 'H c c'
         self.length = 4
 
     def set_data(self, status: int, original_command: str, original_data: str):
@@ -275,7 +317,7 @@ class FrameCommandStatusUpdate(Frame):
     def __init__(self):
         super(FrameCommandStatusUpdate, self).__init__()
         self.type = FrameType.COMMAND_STATUS_UPDATE
-        self.format = 'IH'
+        self.format = 'I H'
         self.length = 6
 
     def set_data(self, cmd_id: int, status: int):
@@ -303,11 +345,25 @@ class FrameGas(Frame):
     def __init__(self):
         super(FrameGas, self).__init__()
         self.type = FrameType.GAS
-        self.format = 'HB'
+        self.format = 'H B'
         self.length = 3
 
     def set_data(self, gas_value: int, gas_id: int):
         self.data = struct.pack(self.format, gas_value, gas_id)
+
+
+class FrameRtttlString(Frame):
+    MEMBERS = ['rtttl_string']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameRtttlString, self).__init__()
+        self.type = FrameType.RTTTL_STRING
+        self.format = '248s'
+        self.length = 248
+
+    def set_data(self, rtttl_string: str):
+        self.data = struct.pack(self.format, rtttl_string)
 
 
 class FrameRequestMapObstacles(Frame):
@@ -331,7 +387,7 @@ class FrameMapInfo(Frame):
     def __init__(self):
         super(FrameMapInfo, self).__init__()
         self.type = FrameType.MAP_INFO
-        self.format = 'HHHBB'
+        self.format = 'H H H B B'
         self.length = 8
 
     def set_data(self, obstacle_count: int, width: int, height: int, path_id: int, map_id: int):
@@ -345,10 +401,38 @@ class FrameMapObstacle(Frame):
     def __init__(self):
         super(FrameMapObstacle, self).__init__()
         self.type = FrameType.MAP_OBSTACLE
-        self.format = 'HHB'
+        self.format = 'H H B'
         self.length = 5
 
     def set_data(self, x: int, y: int, map_id: int):
         self.data = struct.pack(self.format, x, y, map_id)
+
+
+class FrameEndEffectorType(Frame):
+    MEMBERS = ['type']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameEndEffectorType, self).__init__()
+        self.type = FrameType.END_EFFECTOR_TYPE
+        self.format = 'B'
+        self.length = 1
+
+    def set_data(self, type: int):
+        self.data = struct.pack(self.format, type)
+
+
+class FrameEndEffectorClaw(Frame):
+    MEMBERS = ['close']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameEndEffectorClaw, self).__init__()
+        self.type = FrameType.END_EFFECTOR_CLAW
+        self.format = '?'
+        self.length = 1
+
+    def set_data(self, close: bool):
+        self.data = struct.pack(self.format, close)
 
 
