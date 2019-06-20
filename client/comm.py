@@ -97,11 +97,11 @@ QueueManager.register('tx_queue')
 
 
 class Comm(BaseComm):
-    def __init__(self):
+    def __init__(self, filter_own_messages=True):
         self.manager = QueueManager(address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
 
         connection_tries = 0
-
+        
         while True:
             try:
                 connection_tries += 1
@@ -148,7 +148,7 @@ class Comm(BaseComm):
                 # If the PID equals this pid, we have sent this message
                 # If the timestamp is older than our last timestamp, we have already
                 # processed this message
-                if self.pid == frame.pid or frame.timestamp <= self.last_timestamp:
+                if self.filter_own_messages and (self.pid == frame.pid or frame.timestamp <= self.last_timestamp):
                     continue
 
                 self.last_timestamp = frame.timestamp
