@@ -7,9 +7,14 @@ import logging
 import random
 import struct
 import threading
+import time
 from datetime import date
 from dataclasses import dataclass
 
+from manager.manager import BusManager
+from client.comm import Comm
+from common.frame_enum import FrameType
+from common.frames import FrameButtonState
 
 __author__ = "Isha Geurtsen"
 __date__ = date(2019, 6, 20)
@@ -61,3 +66,18 @@ def test_socket():
     server_thread.start()
     assert client(adress) == seed
     server_thread.join()
+
+def test_python_bus():
+    """verifies that the bus manager and comm object talk with each other"""
+    with BusManager() as bus_manager:
+        bus_manager_thread = threading.Thread(target=bus_manager.process)
+        bus_manager_thread.start()
+        with Comm(False) as rx_comm, Comm() as tx_comm:
+            rx_comm.listen_for([FrameType.ALL])
+            frame = FrameButtonState()
+            frame.set_data(True)
+            tx_comm.send(frame)
+            rframe = rx_comm.get_data()
+            assert frame.get_data() == rframe.get_data()
+        bus_manager.stop()
+        bus_manager_thread.join()
