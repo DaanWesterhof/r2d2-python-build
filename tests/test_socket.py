@@ -1,6 +1,8 @@
 #! python
 
-"""this file try's to demonstrate socket module"""
+"""this file demonstrates socket communication over the python bus
+the tests in this file assumes that manager/manager.py is running in the background.
+"""
 
 import socket
 import logging
@@ -10,6 +12,8 @@ import threading
 import time
 from datetime import date
 from dataclasses import dataclass
+
+import pytest
 
 from manager.manager import BusManager
 from client.comm import Comm
@@ -57,9 +61,10 @@ def client(adress):
     logger.warning("shutting down client")
 
 
+@pytest.mark.order1
 def test_socket():
     """tests the socket"""
-    adress = Adress("localhost", 5000)
+    adress = Adress("localhost", 4999)
     seed = random.randint(0, 100)
     logging.basicConfig(level=logging.DEBUG)
     server_thread = threading.Thread(target=server, args=(adress, seed))
@@ -67,17 +72,34 @@ def test_socket():
     assert client(adress) == seed
     server_thread.join()
 
+@pytest.mark.order2
 def test_python_bus():
     """verifies that the bus manager and comm object talk with each other"""
-    with BusManager() as bus_manager:
-        bus_manager_thread = threading.Thread(target=bus_manager.process)
-        bus_manager_thread.start()
-        with Comm(False) as rx_comm, Comm() as tx_comm:
-            rx_comm.listen_for([FrameType.ALL])
-            frame = FrameButtonState()
-            frame.set_data(True)
-            tx_comm.send(frame)
-            rframe = rx_comm.get_data()
-            assert frame.get_data() == rframe.get_data()
-        bus_manager.stop()
-        bus_manager_thread.join()
+    with Comm(False) as rx_comm, Comm() as tx_comm:
+        rx_comm.listen_for([FrameType.ALL])
+        frame = FrameButtonState()
+        frame.set_data(True)
+        tx_comm.send(frame)
+        rframe = rx_comm.get_data()
+        assert frame.get_data() == rframe.get_data()
+
+@pytest.mark.order3
+def test_incomming_socket():
+    """verifies that the python bus can receive frames from external comunication"""
+    with Comm(False) as rx_comm:
+        rx_comm.listen_for([FrameType.ALL])
+        
+        sock = socket.socket()
+        sock.connect(("localhost", 5010))
+        sock.send(struct.pack("BBBI", 1, 0, 0, FrameType.BUTTON_STATE.value))
+        sock.send(struct.pack("?", True))
+        time.sleep(0)
+        ack = sock.recv(1)
+        assert ack
+        sock.close()
+        while not rx_comm.has_data():
+            time.sleep(1)
+        assert rx_comm.has_data()
+        frame = rx_comm.get_data()
+        assert frame.type == FrameType.BUTTON_STATE
+        assert frame.get_data() == (True,)

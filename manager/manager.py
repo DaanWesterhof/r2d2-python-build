@@ -9,20 +9,24 @@ import os
 import copy
 import threading
 import time
-import signal
 import logging
 from multiprocessing.managers import BaseManager
 from multiprocessing import Lock
+import socket
+import struct
+from common.frame_enum import FrameType
+from common.frame_enum_mapping import MAPPING
 from common.signals import register_signal_callback
-from common.common import BUSCONFIG
-import common.config
+from common.common import BUSCONFIG, FrameWrapper
+import common.config # pylint: disable=unused-import
+
 
 class QueueManager(BaseManager):
     """
     Alias for the object pool for sharing the inter process
     objects
     """
-    pass
+
 
 
 PACKET_QUEUE_LENGTH = 64
@@ -53,14 +57,20 @@ class BusManager:
         self.rx_queue = []
         """Receiving queue"""
 
+        self.rx_sock = socket.socket()
+
         self.tx_queue = []
         """Transmitting queue"""
+
+        self.tx_sock = socket.socket()
 
         self.manager = None
         """Contains the object pool/manager"""
 
         self.manager_thread = threading.Thread(target=self._manager)
         """The thread where the manager runs in."""
+
+        self.rx_sock_thread = threading.Thread(target=self._socket_rx)
 
         self.server = None
         self.pid = os.getpid()
@@ -128,6 +138,43 @@ class BusManager:
 
         self.processing_lock.release()
 
+    def _socket_rx(self):
+        # TODO receiving frames over socket
+        header_pattern = b"BBBI"
+        while not self.should_stop:
+            time.sleep(0)
+            connection, adress = self.rx_sock.accept()
+
+            #! assumes connection responds
+            header = connection.recv(struct.calcsize(header_pattern))
+            self.processing_lock.acquire()
+
+            try:
+                length, octet_3, octet_4, frame_type = struct.unpack(header_pattern, header)
+                frame_type = FrameType(value=frame_type)
+            except struct.error:
+                # ignore ill formed headers
+                continue
+            except ValueError:
+                # ignore unknown frame type
+                continue
+            else:
+                frame = MAPPING[frame_type]()
+            #! assumes connection responds
+            self.processing_lock.release()
+            body = connection.recv(8*length)
+            self.processing_lock.acquire()
+            frame.data = body
+            frame_wrapper = FrameWrapper(frame, os.getpid(), time.time())
+
+            self.rx_queue.append(frame_wrapper)
+            self.processing_lock.release()
+            connection.send(b"1")
+
+    def _socket_tx(self):
+        # TODO sending frames over socket
+        pass
+
     def __enter__(self):
         """
         Starts the manager and exposes a central bus.
@@ -147,6 +194,17 @@ class BusManager:
             address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
         pusher.connect()
 
+        _LOGGER.info("Starting sockets")
+
+        self.rx_sock.bind((BUSCONFIG.ADDRESS.ip, 5010))
+        self.rx_sock.listen(10)
+
+        self.rx_sock_thread.start()
+
+        self.tx_sock.bind((BUSCONFIG.ADDRESS.ip, 5020))
+        self.tx_sock.listen(10)
+
+
         _LOGGER.info("Init done, working...")
         return self
 
@@ -161,6 +219,7 @@ class BusManager:
         self.should_stop = True
         self.server.stop_event.set()
         self.manager_thread.join()
+        self.rx_sock_thread.join()
 
     def stop(self):
         """
