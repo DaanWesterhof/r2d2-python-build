@@ -10,6 +10,8 @@ import urllib.request
 import datetime
 from pathlib import Path
 from collections import namedtuple
+from tooling import enum_parser, enum_writer
+from tooling.enum_converter import PythonEnum
 
 REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
 FRAME_REGEX = re.compile(
@@ -59,8 +61,6 @@ TYPE_TABLE = {
     'void*':                CppType(format='P', size=4, python_type=int),
     'void *':               CppType(format='P', size=4, python_type=int),
 }
-
-
 def parse_cpp(input_string: str, regex: re.Pattern = FRAME_REGEX) -> ...:
     """
     this method parses the input_string using the regex pattern
@@ -161,7 +161,8 @@ def generate_frame_class(frames):
             match = re.match(r"(char) (\w+)\[(\d*)\]", data_member)
             if match:
                 member_type, member_name, member_size = match.groups()
-                if not member_size: member_size = "255"
+                if not member_size:
+                    member_size = "255"
                 member_type = CppType(str(int(member_size))+"s", int(member_size), str)
             else:
                 member_type, member_name = data_member.split(' ')
@@ -229,7 +230,21 @@ def _path(loc, filename):
 
 if __name__ == "__main__":
     ENUM_TEXT, FRAME_TEXT = get_git(SOURCE_URL, SOURCE_ANCHOR)
+    ENUMS = list(enum_parser.get_enum_definitions())
+    enum: enum_parser.CxxEnum
+    for enum in ENUMS:
+        if enum.inner_type not in TYPE_TABLE.keys():
+            continue
+        TYPE_TABLE[enum.name] = TYPE_TABLE[enum.inner_type]
+
+
     with open(_path('common', 'frames.py'), 'w') as frames_file:
         frames_file.write(generate_frame_class(parse_cpp(FRAME_TEXT)))
-    with open(_path('common', 'frame_enum.py'), 'w') as enum_file:
-        enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))
+    with open(_path('common', 'frame_enum.py'), 'w') as frame_enum_file:
+        frame_enum_file.write(generate_frame_enum(parse_cpp(ENUM_TEXT)))
+
+    with open(_path('common', 'enums.py'), 'w') as enum_file:
+        enum_writer.write_enums_to_file(
+            file=enum_file,
+            enums=(PythonEnum.from_enum(enum) for enum in ENUMS),
+        )
