@@ -100,6 +100,25 @@ class Comm(BaseComm):
     def __init__(self, filter_own_messages=True):
         self.manager = QueueManager(address=BUSCONFIG.ADDRESS.tuple(), authkey=BUSCONFIG.AUTH_KEY)
 
+        # Queues that refer to the bus process
+        self.last_timestamp = 0
+
+        self.rx_queue = None
+        self.tx_queue = None
+
+        self.comm_listen_for = []
+        self.accepts_all = False
+        self.received = Queue()
+
+        # Start the worker thread for the
+        # connection.
+        self.should_stop = False
+        self.channel_worker = threading.Thread(target=self._work_channel)
+
+        self.pid = os.getpid()
+        self.filter_own_messages = filter_own_messages
+
+    def __enter__(self):
         connection_tries = 0
         
         while True:
@@ -114,23 +133,15 @@ class Comm(BaseComm):
             else:
                 COMM_LOGGER.info("Connected to Python bus succesfully.")
                 break
-
-        # Queues that refer to the bus process
         self.rx_queue = self.manager.rx_queue()
         self.tx_queue = self.manager.tx_queue()
-        self.last_timestamp = 0
-
-        self.comm_listen_for = []
-        self.accepts_all = False
-        self.received = Queue()
-
-        # Start the worker thread for the
-        # connection.
-        self.should_stop = False
-        self.channel_worker = threading.Thread(target=self._work_channel)
         self.channel_worker.start()
 
-        self.pid = os.getpid()
+        return self
+
+    def __exit__(self, *args):
+        self.should_stop = True
+        self.channel_worker.join()
 
     def _work_channel(self):
         """
@@ -214,4 +225,3 @@ class Comm(BaseComm):
 
         """
         self.should_stop = True
-        self.channel_worker.join()

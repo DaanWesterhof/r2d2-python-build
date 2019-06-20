@@ -30,11 +30,12 @@ class BaseModule(ABC):
         raise NotImplementedError
 
     def __enter__(self):
+        self.comm.__enter__()
         return self
 
     def __exit__(self, *args):
+        self.comm.__exit__()
         self.stopped = True
-        self.comm.stop()
 
     def stop(self):
         """signals the application that it should shut down"""
