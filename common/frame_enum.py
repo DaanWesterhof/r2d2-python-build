@@ -12,16 +12,19 @@ or look at https://github.com/R2D2-2019/r2d2-python-build#faq
 from common.common import AutoNumber
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-05-27 11:58:23.857150"
+__date__ = "2019-06-19 14:38:27.029299"
 __status__ = "Production"
 class FrameType(AutoNumber):
     NONE = ()
     BUTTON_STATE = ()
     ACTIVITY_LED_STATE = ()
     DISTANCE = ()
-    DISPLAY_FILLED_RECTANGLE = ()
+    DISPLAY_RECTANGLE = ()
+    DISPLAY_RECTANGLE_VIA_CURSOR = ()
     DISPLAY_8X8_CHARACTER = ()
     DISPLAY_8X8_CHARACTER_VIA_CURSOR = ()
+    DISPLAY_CIRCLE = ()
+    DISPLAY_CIRCLE_VIA_CURSOR = ()
     CURSOR_POSITION = ()
     CURSOR_COLOR = ()
     UI_COMMAND = ()
@@ -37,9 +40,12 @@ class FrameType(AutoNumber):
     COMMAND_ID = ()
     TEMPERATURE = ()
     GAS = ()
+    RTTTL_STRING = ()
     REQUEST_MAP_OBSTACLES = ()
     MAP_INFO = ()
     MAP_OBSTACLE = ()
+    END_EFFECTOR_TYPE = ()
+    END_EFFECTOR_CLAW = ()
     EXTERNAL = ()
     ALL = ()
     COUNT = ()
