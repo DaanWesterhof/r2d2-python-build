@@ -63,6 +63,7 @@ class BusManager:
         """Transmitting queue"""
 
         self.tx_sock = socket.socket()
+        self.tx_sock_queue = []
 
         self.manager = None
         """Contains the object pool/manager"""
@@ -71,6 +72,7 @@ class BusManager:
         """The thread where the manager runs in."""
 
         self.rx_sock_thread = threading.Thread(target=self._socket_rx)
+        self.tx_sock_thread = threading.Thread(target=self._socket_tx)
 
         self.server = None
         self.pid = os.getpid()
@@ -114,6 +116,7 @@ class BusManager:
         for frame in to_send:
             # Distribute frame internally
             self.rx_queue.append(frame)
+            self.tx_sock_queue.append(frame)
 
             _LOGGER.debug(frame)  # 'send'
 
@@ -139,7 +142,24 @@ class BusManager:
         self.processing_lock.release()
 
     def _socket_rx(self):
-        # TODO receiving frames over socket
+        """
+        receives frames over socket and puts them on the python bus
+
+
+        current socket header format is (length: byte, unused: byte, unused: byte, frame type: int)
+
+        the body is frame type dependant, but the length in bytes is equal to the header length
+
+        acknowledgement is either a zero caracter '0' or a one caracter '1'
+
+
+        on a socket the protocol for the remote is.
+        1. connect to the python bus at port 5010
+        2. send header
+        3. send body
+        4. recieve acknowledgement
+        5. close connection (it will also be closed on the python bus)
+        """
         header_pattern = b"BBBI"
         while not self.should_stop:
             time.sleep(0)
@@ -172,8 +192,40 @@ class BusManager:
             connection.send(b"1")
 
     def _socket_tx(self):
-        # TODO sending frames over socket
-        pass
+        """
+        receives frames over socket and puts them on the python bus
+
+
+        current socket header format is (length: byte, unused: byte, unused: byte, frame type: int)
+
+        the body is frame type dependant, but the length in bytes is equal to the header length
+
+        acknowledgement is either a zero caracter '0' or a one caracter '1'
+
+
+        on a socket the protocol for the remote is.
+        1. connect to the python bus at port 5020
+        2. receive header
+        3. receive body
+        4. send acknowledgement
+        5. close connection (it will also be closed on the python bus)
+
+        the manager keeps breaking connections after each send frame.
+        the manager also sends each frame only once to one connection.
+        """
+        while not self.should_stop:
+            while self.tx_sock_queue:
+                frame_wrapper = self.tx_sock_queue.pop()
+                frame = frame_wrapper.frame
+                header = struct.pack("BBBI", struct.calcsize(frame.format), 0, 0, frame.type.value)
+                body = frame.data
+                time.sleep(0)
+                connection, address = self.tx_sock.accept()
+                connection.send(header)
+                connection.send(body)
+                ack = connection.recv(1)
+                assert ack
+                connection.close()
 
     def __enter__(self):
         """
@@ -203,6 +255,7 @@ class BusManager:
 
         self.tx_sock.bind((BUSCONFIG.ADDRESS.ip, 5020))
         self.tx_sock.listen(10)
+        self.tx_sock_thread.start()
 
 
         _LOGGER.info("Init done, working...")
@@ -220,6 +273,7 @@ class BusManager:
         self.server.stop_event.set()
         self.manager_thread.join()
         self.rx_sock_thread.join()
+        self.tx_sock_thread.join()
 
     def stop(self):
         """

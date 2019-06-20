@@ -19,6 +19,8 @@ from manager.manager import BusManager
 from client.comm import Comm
 from common.frame_enum import FrameType
 from common.frames import FrameButtonState
+from common.frame_enum_mapping import MAPPING
+
 
 __author__ = "Isha Geurtsen"
 __date__ = date(2019, 6, 20)
@@ -102,4 +104,27 @@ def test_incomming_socket():
         assert rx_comm.has_data()
         frame = rx_comm.get_data()
         assert frame.type == FrameType.BUTTON_STATE
+        assert frame.get_data() == (True,)
+
+@pytest.mark.order4
+def test_outgoing_socket():
+    with Comm() as tx_comm:
+        frame = FrameButtonState()
+        frame.set_data(True)
+        tx_comm.send(frame)
+
+        header_pattern = b"BBBI"
+
+        sock = socket.socket()
+        sock.connect(("localhost", 5020))
+        header = sock.recv(8)
+
+        length, octet_3, octet_4, frame_type = struct.unpack(header_pattern, header)
+        frame_type = FrameType(value=frame_type)
+        frame = MAPPING[frame_type]()
+        
+        frame.data = sock.recv(length)
+        sock.send(b"1")
+        sock.close()
+
         assert frame.get_data() == (True,)
