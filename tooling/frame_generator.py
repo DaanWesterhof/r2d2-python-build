@@ -15,7 +15,7 @@ from tooling.enum_converter import PythonEnum
 
 REGEX_FLAGS = re.IGNORECASE | re.MULTILINE | re.DOTALL
 FRAME_REGEX = re.compile(
-    r'(?:\/\*{2}((?:(?!\*\/).)*?)\*\/\s+struct )?(frame\w+) \{(.*?)\}', REGEX_FLAGS)
+    r'(?:\/\*{2}((?:(?!\*\/).)*?)\*\/\s+struct )?(frame\w+)[\s\w\:]*\{(.*?)\}', REGEX_FLAGS)
 CLI_FLAG_REGEX = re.compile(
     r'@cond CLI COMMAND @endcond.*?\n(.*)', REGEX_FLAGS)
 COMMENT_REGEX = re.compile(r'\*(.*?)\n')
