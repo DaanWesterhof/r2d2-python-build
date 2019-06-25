@@ -14,7 +14,7 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-06-19 14:38:27.024336"
+__date__ = "2019-06-25 15:10:24.259974"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -294,6 +294,20 @@ class FramePathStep(Frame):
 
     def set_data(self, x: int, y: int, step_id: int, path_id: int):
         self.data = struct.pack(self.format, x, y, step_id, path_id)
+
+
+class FrameMicrophone(Frame):
+    MEMBERS = ['length', 'microphone_data[64]']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameMicrophone, self).__init__()
+        self.type = FrameType.MICROPHONE
+        self.format = 'B h'
+        self.length = 3
+
+    def set_data(self, length: int, microphone_data[64]: int):
+        self.data = struct.pack(self.format, length, microphone_data[64])
 
 
 class FrameCommandLog(Frame):

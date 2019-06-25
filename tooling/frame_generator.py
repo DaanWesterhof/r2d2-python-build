@@ -10,6 +10,7 @@ import urllib.request
 import datetime
 from pathlib import Path
 from collections import namedtuple
+from functools import reduce
 from tooling import enum_parser, enum_writer
 from tooling.enum_converter import PythonEnum
 
@@ -197,12 +198,10 @@ def generate_frame_enum(frames):
 
     output += "class FrameType(AutoNumber):\n"
 
-    frame_id_filter = (lambda cls: cls.name == 'frame_id')
-    frame_ids = list(filter(frame_id_filter, frames))
-    assert len(frame_ids) == 1
-    frame_id: Class = frame_ids[0]
+    frame_type = reduce((lambda a, b: b if b.name == "frame_type" else a), frames, None)
+    assert frame_type is not None
     # For each frame in the file
-    for frame in frame_id.members:
+    for frame in frame_type.members:
         # Take each frame, split by space and take first element
         output += " "*4 + frame.split(" ")[0]
         output += frame[0][:-3] + " = ()\n"
