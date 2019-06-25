@@ -181,20 +181,28 @@ class Frame:
 
         return key in self.MEMBERS
 
-    def set_data(self, data):
+    def set_data(self, *data):
         """this method should be implemented in the subclass
         it should set self.data to the result of struct.pack(self.data, ...)
         where ... is dependant on the frame itself
-        TODO: make this a general function so subclasses need not reinvent the wheel
         """
-        pass
+        data_list = list(data)
+        for index, _ in enumerate(self.MEMBERS):
+            if isinstance(data[index], str) and not data[index]:
+                data_list[index] = b'\0'
+        self.data = struct.pack(self.format, *data_list)
 
     def get_data(self):
         """this method returns a tuple of subclass dependant data"""
         if self.length == 0:
             return None
 
-        return struct.unpack(self.format, self.data)
+        data = list(struct.unpack(self.format, self.data))
+
+        for index, item in enumerate(data):
+            if isinstance(item, bytes):
+                data[index] = bytes.decode(item, "UTF-8").rstrip("\0")
+        return tuple(data)
 
     def __str__(self):
         output = self.__class__.__name__ + '\n'

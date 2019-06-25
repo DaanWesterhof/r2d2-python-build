@@ -11,6 +11,7 @@ import datetime
 from pathlib import Path
 from collections import namedtuple
 from functools import reduce
+import struct
 from tooling import enum_parser, enum_writer
 from tooling.enum_converter import PythonEnum
 
@@ -113,16 +114,13 @@ __status__ = "Production"
 FRAME_TEMPLATE = """class {frame_name}(Frame):
     MEMBERS = [{attribute_names}]
     DESCRIPTION = "{description}"
+    __annotations__ = {annotations}
 
     def __init__(self):
         super({frame_name}, self).__init__()
         self.type = FrameType.{frame_type}
         self.format = '{frame_format}'
         self.length = {size}
-
-    def set_data(self, {attributes_typed}):
-        self.data = struct.pack(self.format, {attributes})
-
 
 """
 
@@ -150,10 +148,8 @@ def generate_frame_class(frames):
 
         # The frame format for in the class, follows
         # the format of the 'struct' Python 3.7 package
-        frame_format = []
-
-        # The size of the struct in bytes
-        size = 0
+        frame_format = ""
+        annotations = {}
 
         # A list of arguments for the 'set_data' method
         name_list = []
@@ -164,24 +160,41 @@ def generate_frame_class(frames):
                 member_type, member_name, member_size = match.groups()
                 if not member_size:
                     member_size = "255"
-                member_type = CppType(str(int(member_size))+"s", int(member_size), str)
+                if 'char' in member_type:
+                    member_format = member_size + 's'
+                    member_python_type = str
+                else:
+                    member_format = member_size + TYPE_TABLE[member_type].format
+                    member_python_type = list
+                member_type = CppType(
+                    member_format,
+                    struct.calcsize(member_format),
+                    member_python_type)
             else:
+                assert '[' not in data_member and ']' not in data_member
                 member_type, member_name = data_member.split(' ')
                 member_type = TYPE_TABLE[member_type]
-            size += member_type.size
-            frame_format.append(member_type.format)
+                member_python_type = member_type.python_type
+            frame_format += bool(frame_format)*" " + member_type.format
             name_list.append(member_name)
             typed_list.append('{}: {}'.format(
                 member_name, member_type.python_type.__name__))
+            annotations[member_name] = member_python_type
+        if 'member_type' in locals():
+            del member_type, member_name
+        if 'member_format' in locals():
+            del member_format, member_size, member_python_type
+        del data_member, match,
         output += FRAME_TEMPLATE.format(
             frame_name=frame_name,
             attribute_names=', '.join(["'" + m + "'" for m in name_list]),
             description='\\n'.join(frame.doc_string),
             frame_type=frame_type,
-            frame_format=" ".join(frame_format),
-            size=size,
+            frame_format=frame_format,
+            size=struct.calcsize(frame_format),
             attributes_typed=', '.join(typed_list),
             attributes=', '.join(name_list),
+            annotations="{{{}}}".format(", ".join("{k!r}:{v.__name__}".format(k=k,v=v) for k, v in annotations.items())),
         )
     return output
 

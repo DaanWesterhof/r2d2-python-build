@@ -63,17 +63,13 @@ def test_generate_frame_class():
 class FrameTestFrame(Frame):
     MEMBERS = ['flag']
     DESCRIPTION = ""
+    __annotations__ = {'flag':bool}
 
     def __init__(self):
         super(FrameTestFrame, self).__init__()
         self.type = FrameType.TEST_FRAME
         self.format = '?'
         self.length = 1
-
-    def set_data(self, flag: bool):
-        self.data = struct.pack(self.format, flag)
-
-
 """
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
@@ -146,17 +142,13 @@ def test_CLI_flag_generate_frame_class():
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
     DESCRIPTION = "Packet containing the state of\\na button."
+    __annotations__ = {'pressed':bool}
 
     def __init__(self):
         super(FrameButtonState, self).__init__()
         self.type = FrameType.BUTTON_STATE
         self.format = '?'
         self.length = 1
-
-    def set_data(self, pressed: bool):
-        self.data = struct.pack(self.format, pressed)
-
-
 """
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
@@ -197,17 +189,13 @@ def test_fixed_length_string():
 class FrameDisplay8x8CharacterViaCursor(Frame):
     MEMBERS = ['cursor_id', 'characters']
     DESCRIPTION = ""
+    __annotations__ = {'cursor_id':int, 'characters':str}
 
     def __init__(self):
         super(FrameDisplay8x8CharacterViaCursor, self).__init__()
         self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
         self.format = 'B 247s'
         self.length = 248
-
-    def set_data(self, cursor_id: int, characters: str):
-        self.data = struct.pack(self.format, cursor_id, characters)
-
-
 """
     output = tooling.frame_generator.generate_frame_class(input_frame)
     assert expected_output == remove_leading_line(output)
@@ -255,17 +243,13 @@ def test_variable_length_string():
 class FrameUiCommand(Frame):
     MEMBERS = ['command', 'params', 'destination']
     DESCRIPTION = ""
+    __annotations__ = {'command':str, 'params':str, 'destination':str}
 
     def __init__(self):
         super(FrameUiCommand, self).__init__()
         self.type = FrameType.UI_COMMAND
         self.format = '255s 255s 255s'
         self.length = 765
-
-    def set_data(self, command: str, params: str, destination: str):
-        self.data = struct.pack(self.format, command, params, destination)
-
-
 """
     output = tooling.frame_generator.generate_frame_class(input_frame)
     assert expected_output == remove_leading_line(output)

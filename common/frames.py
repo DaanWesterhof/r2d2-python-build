@@ -14,11 +14,12 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-06-25 15:22:45.782075"
+__date__ = "2019-06-25 21:48:38.185649"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
     DESCRIPTION = ""
+    __annotations__ = {'pressed':bool}
 
     def __init__(self):
         super(FrameButtonState, self).__init__()
@@ -26,13 +27,10 @@ class FrameButtonState(Frame):
         self.format = '?'
         self.length = 1
 
-    def set_data(self, pressed: bool):
-        self.data = struct.pack(self.format, pressed)
-
-
 class FrameActivityLedState(Frame):
     MEMBERS = ['state']
     DESCRIPTION = ""
+    __annotations__ = {'state':bool}
 
     def __init__(self):
         super(FrameActivityLedState, self).__init__()
@@ -40,13 +38,10 @@ class FrameActivityLedState(Frame):
         self.format = '?'
         self.length = 1
 
-    def set_data(self, state: bool):
-        self.data = struct.pack(self.format, state)
-
-
 class FrameDistance(Frame):
     MEMBERS = ['mm']
     DESCRIPTION = ""
+    __annotations__ = {'mm':int}
 
     def __init__(self):
         super(FrameDistance, self).__init__()
@@ -54,13 +49,10 @@ class FrameDistance(Frame):
         self.format = 'H'
         self.length = 2
 
-    def set_data(self, mm: int):
-        self.data = struct.pack(self.format, mm)
-
-
 class FrameDisplayRectangle(Frame):
     MEMBERS = ['x', 'y', 'width', 'height', 'filled', 'red', 'green', 'blue']
     DESCRIPTION = ""
+    __annotations__ = {'x':int, 'y':int, 'width':int, 'height':int, 'filled':bool, 'red':int, 'green':int, 'blue':int}
 
     def __init__(self):
         super(FrameDisplayRectangle, self).__init__()
@@ -68,13 +60,10 @@ class FrameDisplayRectangle(Frame):
         self.format = 'B B B B ? B B B'
         self.length = 8
 
-    def set_data(self, x: int, y: int, width: int, height: int, filled: bool, red: int, green: int, blue: int):
-        self.data = struct.pack(self.format, x, y, width, height, filled, red, green, blue)
-
-
 class FrameDisplayRectangleViaCursor(Frame):
     MEMBERS = ['cursor_id', 'width', 'height', 'filled', 'red', 'green', 'blue']
     DESCRIPTION = ""
+    __annotations__ = {'cursor_id':int, 'width':int, 'height':int, 'filled':bool, 'red':int, 'green':int, 'blue':int}
 
     def __init__(self):
         super(FrameDisplayRectangleViaCursor, self).__init__()
@@ -82,13 +71,10 @@ class FrameDisplayRectangleViaCursor(Frame):
         self.format = 'B B B ? B B B'
         self.length = 7
 
-    def set_data(self, cursor_id: int, width: int, height: int, filled: bool, red: int, green: int, blue: int):
-        self.data = struct.pack(self.format, cursor_id, width, height, filled, red, green, blue)
-
-
 class FrameDisplay8x8Character(Frame):
     MEMBERS = ['x', 'y', 'red', 'green', 'blue', 'characters']
     DESCRIPTION = ""
+    __annotations__ = {'x':int, 'y':int, 'red':int, 'green':int, 'blue':int, 'characters':str}
 
     def __init__(self):
         super(FrameDisplay8x8Character, self).__init__()
@@ -96,13 +82,10 @@ class FrameDisplay8x8Character(Frame):
         self.format = 'B B B B B 243s'
         self.length = 248
 
-    def set_data(self, x: int, y: int, red: int, green: int, blue: int, characters: str):
-        self.data = struct.pack(self.format, x, y, red, green, blue, characters)
-
-
 class FrameDisplay8x8CharacterViaCursor(Frame):
     MEMBERS = ['cursor_id', 'characters']
     DESCRIPTION = ""
+    __annotations__ = {'cursor_id':int, 'characters':str}
 
     def __init__(self):
         super(FrameDisplay8x8CharacterViaCursor, self).__init__()
@@ -110,13 +93,10 @@ class FrameDisplay8x8CharacterViaCursor(Frame):
         self.format = 'B 247s'
         self.length = 248
 
-    def set_data(self, cursor_id: int, characters: str):
-        self.data = struct.pack(self.format, cursor_id, characters)
-
-
 class FrameDisplayCircle(Frame):
     MEMBERS = ['x', 'y', 'radius', 'filled', 'red', 'green', 'blue']
     DESCRIPTION = ""
+    __annotations__ = {'x':int, 'y':int, 'radius':int, 'filled':bool, 'red':int, 'green':int, 'blue':int}
 
     def __init__(self):
         super(FrameDisplayCircle, self).__init__()
@@ -124,13 +104,10 @@ class FrameDisplayCircle(Frame):
         self.format = 'B B B ? B B B'
         self.length = 7
 
-    def set_data(self, x: int, y: int, radius: int, filled: bool, red: int, green: int, blue: int):
-        self.data = struct.pack(self.format, x, y, radius, filled, red, green, blue)
-
-
 class FrameDisplayCircleViaCursor(Frame):
     MEMBERS = ['cursor_id', 'radius', 'filled', 'red', 'green', 'blue']
     DESCRIPTION = ""
+    __annotations__ = {'cursor_id':int, 'radius':int, 'filled':bool, 'red':int, 'green':int, 'blue':int}
 
     def __init__(self):
         super(FrameDisplayCircleViaCursor, self).__init__()
@@ -138,13 +115,10 @@ class FrameDisplayCircleViaCursor(Frame):
         self.format = 'B B ? B B B'
         self.length = 6
 
-    def set_data(self, cursor_id: int, radius: int, filled: bool, red: int, green: int, blue: int):
-        self.data = struct.pack(self.format, cursor_id, radius, filled, red, green, blue)
-
-
 class FrameCursorPosition(Frame):
     MEMBERS = ['cursor_id', 'cursor_x', 'cursor_y']
     DESCRIPTION = ""
+    __annotations__ = {'cursor_id':int, 'cursor_x':int, 'cursor_y':int}
 
     def __init__(self):
         super(FrameCursorPosition, self).__init__()
@@ -152,13 +126,10 @@ class FrameCursorPosition(Frame):
         self.format = 'B B B'
         self.length = 3
 
-    def set_data(self, cursor_id: int, cursor_x: int, cursor_y: int):
-        self.data = struct.pack(self.format, cursor_id, cursor_x, cursor_y)
-
-
 class FrameCursorColor(Frame):
     MEMBERS = ['cursor_id', 'red', 'green', 'blue']
     DESCRIPTION = ""
+    __annotations__ = {'cursor_id':int, 'red':int, 'green':int, 'blue':int}
 
     def __init__(self):
         super(FrameCursorColor, self).__init__()
@@ -166,13 +137,10 @@ class FrameCursorColor(Frame):
         self.format = 'B B B B'
         self.length = 4
 
-    def set_data(self, cursor_id: int, red: int, green: int, blue: int):
-        self.data = struct.pack(self.format, cursor_id, red, green, blue)
-
-
 class FrameTemperature(Frame):
     MEMBERS = ['id', 'ambient_temperature', 'object_temperature']
     DESCRIPTION = ""
+    __annotations__ = {'id':int, 'ambient_temperature':int, 'object_temperature':int}
 
     def __init__(self):
         super(FrameTemperature, self).__init__()
@@ -180,13 +148,10 @@ class FrameTemperature(Frame):
         self.format = 'I h h'
         self.length = 8
 
-    def set_data(self, id: int, ambient_temperature: int, object_temperature: int):
-        self.data = struct.pack(self.format, id, ambient_temperature, object_temperature)
-
-
 class FrameUiCommand(Frame):
     MEMBERS = ['command', 'params', 'destination']
     DESCRIPTION = ""
+    __annotations__ = {'command':str, 'params':str, 'destination':str}
 
     def __init__(self):
         super(FrameUiCommand, self).__init__()
@@ -194,13 +159,10 @@ class FrameUiCommand(Frame):
         self.format = 'c c c'
         self.length = 3
 
-    def set_data(self, command: str, params: str, destination: str):
-        self.data = struct.pack(self.format, command, params, destination)
-
-
 class FrameRobotNames(Frame):
     MEMBERS = ['names']
     DESCRIPTION = ""
+    __annotations__ = {'names':str}
 
     def __init__(self):
         super(FrameRobotNames, self).__init__()
@@ -208,13 +170,10 @@ class FrameRobotNames(Frame):
         self.format = 'c'
         self.length = 1
 
-    def set_data(self, names: str):
-        self.data = struct.pack(self.format, names)
-
-
 class FrameSwarmNames(Frame):
     MEMBERS = ['names']
     DESCRIPTION = ""
+    __annotations__ = {'names':str}
 
     def __init__(self):
         super(FrameSwarmNames, self).__init__()
@@ -222,13 +181,10 @@ class FrameSwarmNames(Frame):
         self.format = 'c'
         self.length = 1
 
-    def set_data(self, names: str):
-        self.data = struct.pack(self.format, names)
-
-
 class FrameBatteryLevel(Frame):
     MEMBERS = ['voltage', 'percentage']
     DESCRIPTION = ""
+    __annotations__ = {'voltage':int, 'percentage':int}
 
     def __init__(self):
         super(FrameBatteryLevel, self).__init__()
@@ -236,13 +192,10 @@ class FrameBatteryLevel(Frame):
         self.format = 'I B'
         self.length = 5
 
-    def set_data(self, voltage: int, percentage: int):
-        self.data = struct.pack(self.format, voltage, percentage)
-
-
 class FrameManualControl(Frame):
     MEMBERS = ['speed', 'rotation', 'brake']
     DESCRIPTION = ""
+    __annotations__ = {'speed':int, 'rotation':int, 'brake':bool}
 
     def __init__(self):
         super(FrameManualControl, self).__init__()
@@ -250,13 +203,10 @@ class FrameManualControl(Frame):
         self.format = 'b b ?'
         self.length = 3
 
-    def set_data(self, speed: int, rotation: int, brake: bool):
-        self.data = struct.pack(self.format, speed, rotation, brake)
-
-
 class FrameMovementControl(Frame):
     MEMBERS = ['speed', 'rotation', 'brake']
     DESCRIPTION = ""
+    __annotations__ = {'speed':int, 'rotation':int, 'brake':bool}
 
     def __init__(self):
         super(FrameMovementControl, self).__init__()
@@ -264,13 +214,10 @@ class FrameMovementControl(Frame):
         self.format = 'b b ?'
         self.length = 3
 
-    def set_data(self, speed: int, rotation: int, brake: bool):
-        self.data = struct.pack(self.format, speed, rotation, brake)
-
-
 class FrameCoordinate(Frame):
     MEMBERS = ['altitude', 'long_tenthousandth_min', 'lat_tenthousandth_min', 'lat_deg', 'lat_min', 'long_deg', 'long_min', 'north_south_hemisphere', 'east_west_hemisphere']
     DESCRIPTION = ""
+    __annotations__ = {'altitude':int, 'long_tenthousandth_min':int, 'lat_tenthousandth_min':int, 'lat_deg':int, 'lat_min':int, 'long_deg':int, 'long_min':int, 'north_south_hemisphere':bool, 'east_west_hemisphere':bool}
 
     def __init__(self):
         super(FrameCoordinate, self).__init__()
@@ -278,13 +225,10 @@ class FrameCoordinate(Frame):
         self.format = 'h H H B B B B ? ?'
         self.length = 12
 
-    def set_data(self, altitude: int, long_tenthousandth_min: int, lat_tenthousandth_min: int, lat_deg: int, lat_min: int, long_deg: int, long_min: int, north_south_hemisphere: bool, east_west_hemisphere: bool):
-        self.data = struct.pack(self.format, altitude, long_tenthousandth_min, lat_tenthousandth_min, lat_deg, lat_min, long_deg, long_min, north_south_hemisphere, east_west_hemisphere)
-
-
 class FramePathStep(Frame):
     MEMBERS = ['x', 'y', 'step_id', 'path_id']
     DESCRIPTION = ""
+    __annotations__ = {'x':int, 'y':int, 'step_id':int, 'path_id':int}
 
     def __init__(self):
         super(FramePathStep, self).__init__()
@@ -292,27 +236,21 @@ class FramePathStep(Frame):
         self.format = 'I I H B'
         self.length = 11
 
-    def set_data(self, x: int, y: int, step_id: int, path_id: int):
-        self.data = struct.pack(self.format, x, y, step_id, path_id)
-
-
 class FrameMicrophone(Frame):
     MEMBERS = ['length', 'microphone_data']
     DESCRIPTION = ""
+    __annotations__ = {'length':int, 'microphone_data':list}
 
     def __init__(self):
         super(FrameMicrophone, self).__init__()
         self.type = FrameType.MICROPHONE
-        self.format = 'B 64s'
-        self.length = 65
-
-    def set_data(self, length: int, microphone_data: str):
-        self.data = struct.pack(self.format, length, microphone_data)
-
+        self.format = 'B 64h'
+        self.length = 130
 
 class FrameCommandLog(Frame):
     MEMBERS = ['status', 'original_command', 'original_data']
     DESCRIPTION = ""
+    __annotations__ = {'status':int, 'original_command':str, 'original_data':str}
 
     def __init__(self):
         super(FrameCommandLog, self).__init__()
@@ -320,13 +258,10 @@ class FrameCommandLog(Frame):
         self.format = 'H c c'
         self.length = 4
 
-    def set_data(self, status: int, original_command: str, original_data: str):
-        self.data = struct.pack(self.format, status, original_command, original_data)
-
-
 class FrameCommandStatusUpdate(Frame):
     MEMBERS = ['cmd_id', 'status']
     DESCRIPTION = ""
+    __annotations__ = {'cmd_id':int, 'status':int}
 
     def __init__(self):
         super(FrameCommandStatusUpdate, self).__init__()
@@ -334,13 +269,10 @@ class FrameCommandStatusUpdate(Frame):
         self.format = 'I H'
         self.length = 6
 
-    def set_data(self, cmd_id: int, status: int):
-        self.data = struct.pack(self.format, cmd_id, status)
-
-
 class FrameCommandId(Frame):
     MEMBERS = ['command_id']
     DESCRIPTION = ""
+    __annotations__ = {'command_id':int}
 
     def __init__(self):
         super(FrameCommandId, self).__init__()
@@ -348,13 +280,10 @@ class FrameCommandId(Frame):
         self.format = 'I'
         self.length = 4
 
-    def set_data(self, command_id: int):
-        self.data = struct.pack(self.format, command_id)
-
-
 class FrameGas(Frame):
     MEMBERS = ['gas_value', 'gas_id']
     DESCRIPTION = ""
+    __annotations__ = {'gas_value':int, 'gas_id':int}
 
     def __init__(self):
         super(FrameGas, self).__init__()
@@ -362,13 +291,10 @@ class FrameGas(Frame):
         self.format = 'H B'
         self.length = 3
 
-    def set_data(self, gas_value: int, gas_id: int):
-        self.data = struct.pack(self.format, gas_value, gas_id)
-
-
 class FrameRtttlString(Frame):
     MEMBERS = ['rtttl_string']
     DESCRIPTION = ""
+    __annotations__ = {'rtttl_string':str}
 
     def __init__(self):
         super(FrameRtttlString, self).__init__()
@@ -376,13 +302,10 @@ class FrameRtttlString(Frame):
         self.format = '248s'
         self.length = 248
 
-    def set_data(self, rtttl_string: str):
-        self.data = struct.pack(self.format, rtttl_string)
-
-
 class FrameRequestMapObstacles(Frame):
     MEMBERS = ['path_id']
     DESCRIPTION = ""
+    __annotations__ = {'path_id':int}
 
     def __init__(self):
         super(FrameRequestMapObstacles, self).__init__()
@@ -390,13 +313,10 @@ class FrameRequestMapObstacles(Frame):
         self.format = 'B'
         self.length = 1
 
-    def set_data(self, path_id: int):
-        self.data = struct.pack(self.format, path_id)
-
-
 class FrameMapInfo(Frame):
     MEMBERS = ['obstacle_count', 'width', 'height', 'path_id', 'map_id']
     DESCRIPTION = ""
+    __annotations__ = {'obstacle_count':int, 'width':int, 'height':int, 'path_id':int, 'map_id':int}
 
     def __init__(self):
         super(FrameMapInfo, self).__init__()
@@ -404,13 +324,10 @@ class FrameMapInfo(Frame):
         self.format = 'H H H B B'
         self.length = 8
 
-    def set_data(self, obstacle_count: int, width: int, height: int, path_id: int, map_id: int):
-        self.data = struct.pack(self.format, obstacle_count, width, height, path_id, map_id)
-
-
 class FrameMapObstacle(Frame):
     MEMBERS = ['x', 'y', 'map_id']
     DESCRIPTION = ""
+    __annotations__ = {'x':int, 'y':int, 'map_id':int}
 
     def __init__(self):
         super(FrameMapObstacle, self).__init__()
@@ -418,13 +335,10 @@ class FrameMapObstacle(Frame):
         self.format = 'H H B'
         self.length = 5
 
-    def set_data(self, x: int, y: int, map_id: int):
-        self.data = struct.pack(self.format, x, y, map_id)
-
-
 class FrameEndEffectorType(Frame):
     MEMBERS = ['type']
     DESCRIPTION = ""
+    __annotations__ = {'type':int}
 
     def __init__(self):
         super(FrameEndEffectorType, self).__init__()
@@ -432,21 +346,14 @@ class FrameEndEffectorType(Frame):
         self.format = 'B'
         self.length = 1
 
-    def set_data(self, type: int):
-        self.data = struct.pack(self.format, type)
-
-
 class FrameEndEffectorClaw(Frame):
     MEMBERS = ['close']
     DESCRIPTION = ""
+    __annotations__ = {'close':bool}
 
     def __init__(self):
         super(FrameEndEffectorClaw, self).__init__()
         self.type = FrameType.END_EFFECTOR_CLAW
         self.format = '?'
         self.length = 1
-
-    def set_data(self, close: bool):
-        self.data = struct.pack(self.format, close)
-
 

@@ -48,21 +48,26 @@ def test_frames_isinstance_of_frame():
 
 
 def test_frame_can_set_data():
-    """this test asserts that all frames can be called with set_data"""
-    def convert(type_):
-        """this function converts the given type, to the type that struct.pack expects"""
-        if isinstance(type_, str):
-            return b"a"
-        elif isinstance(type_, bool):
-            return bytes(str(int(type_)), "UTF-8")
-        else:
-            return type_
+    """
+    this test asserts that all frames can be called with set_data
+    """
+    manual_data = {
+        common.frame_enum.FrameType.MICROPHONE:(0,)*65,
+    }
     for frame_class in FRAMES:
-        frame_class: common.common.Frame
-        annotations = frame_class.set_data.__annotations__
-        kwargs = {
-            annotation: convert(annotations[annotation]())
-            for annotation in annotations}
         frame = frame_class()
-        frame.set_data(**kwargs)
-        frame.get_data()
+        annotations = frame.__annotations__
+        args = tuple(annotations[name]() for name in frame.MEMBERS)
+        if frame.type in manual_data:
+            args = manual_data[frame.type]
+        frame.set_data(*args)
+        assert args == frame.get_data()
+
+def test_frame_can_set_item():
+    for frame_class in FRAMES:
+        frame = frame_class()
+        annotations = frame.__annotations__
+        for name in frame:
+            item = annotations[name]()
+            frame[name] = item
+            assert frame[name] == item
