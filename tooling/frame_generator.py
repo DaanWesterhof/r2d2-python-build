@@ -159,7 +159,7 @@ def generate_frame_class(frames):
         name_list = []
         typed_list = []
         for data_member in frame.members:
-            match = re.match(r"(char) (\w+)\[(\d*)\]", data_member)
+            match = re.match(r"(char|u?int\d+_t) (\w+)\[(\d*)\]", data_member)
             if match:
                 member_type, member_name, member_size = match.groups()
                 if not member_size:

@@ -82,7 +82,7 @@ class FrameTestFrame(Frame):
 def test_generate_frame_enums():
     generate_frame_enum = tooling.frame_generator.generate_frame_enum
     Class = tooling.frame_generator.Class
-    input_frames = [Class('frame_id', ['NONE = 0', 'TEST', 'ALL', 'COUNT'], [])]
+    input_frames = [Class('frame_type', ['NONE = 0', 'TEST', 'ALL', 'COUNT'], [])]
     expected_output = """
 class FrameType(AutoNumber):
     NONE = ()
