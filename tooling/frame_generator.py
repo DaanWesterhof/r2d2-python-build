@@ -166,17 +166,14 @@ def generate_frame_class(frames):
                 member_type = CppType(str(int(member_size))+"s", int(member_size), str)
             else:
                 member_type, member_name = data_member.split(' ')
-                # hacky way to remove c++ arrays sticking to variable names
-                if re.search(r"\[\d+\]", member_name):
-                    member_name = re.sub("\\[\\d+\\]", "", member_name)
-
-
                 member_type = TYPE_TABLE[member_type]
+
             size += member_type.size
             frame_format.append(member_type.format)
             name_list.append(member_name)
             typed_list.append('{}: {}'.format(
                 member_name, member_type.python_type.__name__))
+                
         output += FRAME_TEMPLATE.format(
             frame_name=frame_name,
             attribute_names=', '.join(["'" + m + "'" for m in name_list]),
