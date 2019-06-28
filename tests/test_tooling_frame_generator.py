@@ -70,6 +70,7 @@ class FrameTestFrame(Frame):
         self.type = FrameType.TEST_FRAME
         self.format = '?'
         self.length = 1
+
 """
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
@@ -149,6 +150,7 @@ class FrameButtonState(Frame):
         self.type = FrameType.BUTTON_STATE
         self.format = '?'
         self.length = 1
+
 """
     output = generate_frame_class(input_frames)
     assert remove_leading_line(output) == expected_output
@@ -196,6 +198,7 @@ class FrameDisplay8x8CharacterViaCursor(Frame):
         self.type = FrameType.DISPLAY_8X8_CHARACTER_VIA_CURSOR
         self.format = 'B 247s'
         self.length = 248
+
 """
     output = tooling.frame_generator.generate_frame_class(input_frame)
     assert expected_output == remove_leading_line(output)
@@ -250,6 +253,7 @@ class FrameUiCommand(Frame):
         self.type = FrameType.UI_COMMAND
         self.format = '255s 255s 255s'
         self.length = 765
+
 """
     output = tooling.frame_generator.generate_frame_class(input_frame)
     assert expected_output == remove_leading_line(output)

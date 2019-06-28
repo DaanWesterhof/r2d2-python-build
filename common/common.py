@@ -94,7 +94,21 @@ class Frame:
         :return:
         """
 
-        self.data = struct.pack(self.format, *tuple_)
+        return self.set_data(*tuple_)
+    
+    def _default_fill(self):
+        """fills data with standard data"""
+        ls = []
+        for specifier in self.format.split(' '):
+            count, type_ = specifier[:-1], specifier[-1]
+            if type_ in ("s", "c"):
+                ls.append(b"\x1a")
+            elif count:
+                for _ in range(int(count)):
+                    ls.append(0)
+            else:
+                ls.append(0)
+        self.data = struct.pack(self.format, *ls)
 
     def __init__(self):
         # Set in child class
@@ -144,20 +158,19 @@ class Frame:
         # If the data is not yet set, we'll create an empty
         # tuple as filler
         if not self.data:
-            tmp = list(range(len(self.MEMBERS)))
-            format_ = list(self.format.split(' '))
-            for i, specifier in enumerate(format_):
-                if specifier in ['?', 'c'] or str.endswith(specifier, 's'):
-                    tmp[i] = chr(26)
-            data = tuple(tmp)
-            del tmp
+            self._default_fill()
+
+        data = list(self.get_data())
+        if isinstance(value, str):
+            data[index] = bytes(value, encoding="UTF-8")
         else:
-            data = self.get_data()
+            data[index] = value
 
-        tmp = list(data)
-        tmp[index] = value
+        for index, value in enumerate(data):
+            if isinstance(value, str):
+                data[index] = bytes(value, encoding="UTF-8")
 
-        self._pack_from_tuple(tuple(tmp))
+        self._pack_from_tuple(tuple(data))
 
     def __iter__(self):
         """
@@ -186,10 +199,22 @@ class Frame:
         it should set self.data to the result of struct.pack(self.data, ...)
         where ... is dependant on the frame itself
         """
-        data_list = list(data)
-        for index, _ in enumerate(self.MEMBERS):
-            if isinstance(data[index], str) and not data[index]:
-                data_list[index] = b'\0'
+        data_list = list()
+        for index, specifier in enumerate(self.format.split(" ")):
+            count = 1 if specifier[:-1] == '' else int(specifier[:-1])
+            type_ = specifier[-1]
+            if type_ == 's':
+                if not data[index]:
+                    data_list.append(b'\0')
+                else:
+                    data_list.append(data[index])
+            elif type_ == 'c' and not data[index]:
+                data_list.append(b'\x1A')
+            elif count > 1:
+                for item in data[index]:
+                    data_list.append(item)
+            else:
+                data_list.append(data[index])
         self.data = struct.pack(self.format, *data_list)
 
     def get_data(self):
@@ -197,11 +222,30 @@ class Frame:
         if self.length == 0:
             return None
 
-        data = list(struct.unpack(self.format, self.data))
+        raw_data = struct.unpack(self.format, self.data)
+        data = list()
 
-        for index, item in enumerate(data):
-            if isinstance(item, bytes):
-                data[index] = bytes.decode(item, "UTF-8").rstrip("\0")
+        index = 0
+        for specifier in self.format.split(" "):
+            count = 1 if specifier[:-1] == '' else int(specifier[:-1])
+            type_ = specifier[-1]
+            if count == 1:
+                if type_ == 'c':
+                    data.append(
+                        raw_data[index]
+                        .decode(encoding="UTF-8")
+                        .rstrip(chr(0))
+                        .replace("\x1A", '')
+                    )
+                else:
+                    data.append(raw_data[index])
+                index += 1
+            elif type_ == "s":
+                data.append(raw_data[index].decode(encoding="UTF-8").rstrip(chr(0)))
+                index += 1
+            else:
+                data.append(tuple(raw_data[index+i] for i in range(count)))
+                index += count
         return tuple(data)
 
     def __str__(self):

@@ -52,7 +52,7 @@ def test_frame_can_set_data():
     this test asserts that all frames can be called with set_data
     """
     manual_data = {
-        common.frame_enum.FrameType.MICROPHONE:(0,)*65,
+        common.frame_enum.FrameType.MICROPHONE: (0, (0,)*64),
     }
     for frame_class in FRAMES:
         frame = frame_class()
@@ -63,11 +63,20 @@ def test_frame_can_set_data():
         frame.set_data(*args)
         assert args == frame.get_data()
 
+
 def test_frame_can_set_item():
+    manual_data = {
+        common.frame_enum.FrameType.MICROPHONE: {
+            'microphone_data': (0,)*64,
+        }
+    }
     for frame_class in FRAMES:
-        frame = frame_class()
-        annotations = frame.__annotations__
-        for name in frame:
-            item = annotations[name]()
+        annotations = frame_class.__annotations__
+        for name in frame_class.MEMBERS:
+            frame = frame_class()
+            if frame.type in manual_data and name in manual_data[frame.type]:
+                item = manual_data[frame.type][name]
+            else:
+                item = annotations[name]()
             frame[name] = item
             assert frame[name] == item
