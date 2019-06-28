@@ -31,7 +31,7 @@ Class = namedtuple("Frame", ["name", "members", "doc_string"])
 
 
 TYPE_TABLE = {
-    'char':                 CppType(format='c', size=1, python_type=str),
+    'char':                 CppType(format='s', size=1, python_type=str),
     'int8_t':               CppType(format='b', size=1, python_type=int),
     'signed char':          CppType(format='b', size=1, python_type=str),
     'unsigned char':        CppType(format='B', size=1, python_type=str),
