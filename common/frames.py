@@ -14,7 +14,7 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-06-19 14:38:27.024336"
+__date__ = "2019-06-28 13:33:17.310247"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -254,6 +254,48 @@ class FrameManualControl(Frame):
         self.data = struct.pack(self.format, speed, rotation, brake)
 
 
+class FrameManualControlButton(Frame):
+    MEMBERS = ['controller_id', 'button_id', 'value']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameManualControlButton, self).__init__()
+        self.type = FrameType.MANUAL_CONTROL_BUTTON
+        self.format = 'B B ?'
+        self.length = 3
+
+    def set_data(self, controller_id: int, button_id: int, value: bool):
+        self.data = struct.pack(self.format, controller_id, button_id, value)
+
+
+class FrameManualControlSlider(Frame):
+    MEMBERS = ['controller_id', 'slider_id', 'value']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameManualControlSlider, self).__init__()
+        self.type = FrameType.MANUAL_CONTROL_SLIDER
+        self.format = 'B B B'
+        self.length = 3
+
+    def set_data(self, controller_id: int, slider_id: int, value: int):
+        self.data = struct.pack(self.format, controller_id, slider_id, value)
+
+
+class FrameManualControlJoystick(Frame):
+    MEMBERS = ['controller_id', 'joystick_id', 'value_x', 'value_y']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameManualControlJoystick, self).__init__()
+        self.type = FrameType.MANUAL_CONTROL_JOYSTICK
+        self.format = 'B B b b'
+        self.length = 4
+
+    def set_data(self, controller_id: int, joystick_id: int, value_x: int, value_y: int):
+        self.data = struct.pack(self.format, controller_id, joystick_id, value_x, value_y)
+
+
 class FrameMovementControl(Frame):
     MEMBERS = ['speed', 'rotation', 'brake']
     DESCRIPTION = ""
@@ -294,6 +336,20 @@ class FramePathStep(Frame):
 
     def set_data(self, x: int, y: int, step_id: int, path_id: int):
         self.data = struct.pack(self.format, x, y, step_id, path_id)
+
+
+class FrameMicrophone(Frame):
+    MEMBERS = ['length', 'microphone_data']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameMicrophone, self).__init__()
+        self.type = FrameType.MICROPHONE
+        self.format = 'B h'
+        self.length = 3
+
+    def set_data(self, length: int, microphone_data: int):
+        self.data = struct.pack(self.format, length, microphone_data)
 
 
 class FrameCommandLog(Frame):
@@ -434,5 +490,33 @@ class FrameEndEffectorClaw(Frame):
 
     def set_data(self, close: bool):
         self.data = struct.pack(self.format, close)
+
+
+class FrameFlameDetection(Frame):
+    MEMBERS = ['flame_detected', 'big_fire', 'flame_angle']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameFlameDetection, self).__init__()
+        self.type = FrameType.FLAME_DETECTION
+        self.format = '? ? i'
+        self.length = 6
+
+    def set_data(self, flame_detected: bool, big_fire: bool, flame_angle: int):
+        self.data = struct.pack(self.format, flame_detected, big_fire, flame_angle)
+
+
+class FrameQrcodeData(Frame):
+    MEMBERS = ['message', 'width', 'height', 'x_offset', 'y_offset', 'distance_in_mm']
+    DESCRIPTION = ""
+
+    def __init__(self):
+        super(FrameQrcodeData, self).__init__()
+        self.type = FrameType.QRCODE_DATA
+        self.format = 'c H H H H H'
+        self.length = 11
+
+    def set_data(self, message: str, width: int, height: int, x_offset: int, y_offset: int, distance_in_mm: int):
+        self.data = struct.pack(self.format, message, width, height, x_offset, y_offset, distance_in_mm)
 
 
