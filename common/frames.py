@@ -14,7 +14,7 @@ from .common import Frame
 from common.frame_enum import FrameType
 
 __maintainer__ = "Isha Geurtsen"
-__date__ = "2019-06-28 13:33:17.310247"
+__date__ = "2019-06-28 18:36:07.164042"
 __status__ = "Production"
 class FrameButtonState(Frame):
     MEMBERS = ['pressed']
@@ -339,7 +339,7 @@ class FramePathStep(Frame):
 
 
 class FrameMicrophone(Frame):
-    MEMBERS = ['length', 'microphone_data']
+    MEMBERS = ['length', 'microphone_data[64]']
     DESCRIPTION = ""
 
     def __init__(self):
@@ -348,8 +348,8 @@ class FrameMicrophone(Frame):
         self.format = 'B h'
         self.length = 3
 
-    def set_data(self, length: int, microphone_data: int):
-        self.data = struct.pack(self.format, length, microphone_data)
+    def set_data(self, length: int, microphone_data[64]: int):
+        self.data = struct.pack(self.format, length, microphone_data[64])
 
 
 class FrameCommandLog(Frame):
@@ -513,8 +513,8 @@ class FrameQrcodeData(Frame):
     def __init__(self):
         super(FrameQrcodeData, self).__init__()
         self.type = FrameType.QRCODE_DATA
-        self.format = 'c H H H H H'
-        self.length = 11
+        self.format = '200s H H h h H'
+        self.length = 210
 
     def set_data(self, message: str, width: int, height: int, x_offset: int, y_offset: int, distance_in_mm: int):
         self.data = struct.pack(self.format, message, width, height, x_offset, y_offset, distance_in_mm)
